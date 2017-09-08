@@ -1,8 +1,8 @@
-#Sparki Readme
+# Sparki Readme
 
-##Reference Material
+## Reference Material
 
-###Controls
+### Controls
 
-###Functions
+### Functions
 See sparki.h
