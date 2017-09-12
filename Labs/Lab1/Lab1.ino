@@ -72,6 +72,7 @@ int readRemote() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+   defaultLineFollowing();
    int code = sparki.readIR();
 
    if (code != -1){
@@ -83,7 +84,7 @@ void loop() {
     //Start program
     case 28:  sparki.moveLeft(); break;
     case 64:  sparki.moveStop(); break;
-    case 24:  moveLeftInfinite(); break;
+    //case 24:  moveLeftInfinite(); break;
    }
   sparki.updateLCD();
 }
