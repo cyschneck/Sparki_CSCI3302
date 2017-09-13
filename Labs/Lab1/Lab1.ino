@@ -2,10 +2,9 @@
 #define STOP=28
 #include <Sparki.h> // include sparki library
 
-const int threshold = 500; // line sensor threshold
+const int threshold = 700; // line sensor threshold
 const int objectDistance = 3; // distance to object before gripping
 const int gripTime = 2000; // time to grip (2 second)
-const int turnSpeed = 0; //used to turn the robot over an external center of rotation
 const int maxObjects = 1; // total objects to retrieve
 
 int objectIndex = 0;
@@ -22,8 +21,6 @@ void setup() {
   sparki.beep(440, 300);
   delay(300);
   sparki.beep(880, 500);
-  //sparki.gripperOpen(); // open gripper at each start
-  //delay(500);
 }
 
 // /------^-----\
@@ -54,16 +51,31 @@ int readRemote() {
 void moveLeft()
 {
   //turn left at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 0);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 60); // 60 to slow down while turning
+  sparki.motorRotate(MOTOR_LEFT, DIR_CW, 30);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 30); // 60 to slow down while turning
+}
+
+void moveLeftandForward()
+{
+  //turn left at a lower speed:
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 15);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 45);
 }
  
 void moveRight()
 {
   //turn right at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 60);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 0);
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 30);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CCW, 30);
 }
+
+void moveRightandForward()
+{
+  //turn right at a lower speed:
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 45);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 15);
+}
+
 void followLine(bool foundObject)
 {
   state = "follow line";
@@ -95,17 +107,35 @@ void followLine(bool foundObject)
       }
     }
   }
-  if (!lineLeft) // if the black line is below left line sensor
+  readSensors();
+  displaySensorsAndStates();
+  if (!lineLeft && lineCenter && lineRight) // if the black line is below left line sensor
   {
     moveLeft(); // turn left
   }
-  else if (!lineRight) // if black line is below right line sensor
+  else if (!lineRight && lineCenter && lineLeft) // if black line is below right line sensor
   {
-    moveRight(); // turn right
+    moveRight(); // turn right, very off course, larger correction
   }
   else if (lineLeft && !lineCenter && lineRight) // if line only found on center line sensor
   {
-    sparki.moveForward(); // move foward
+    sparki.moveForward(); // move foward 
+  }
+  else if (!lineLeft && !lineCenter && lineRight) // both left and center see black
+  {
+    moveLeftandForward(); //slightly off course (small correct)
+  }
+  else if (!lineRight && !lineCenter && lineLeft) // both left and center see black
+  {
+    moveRightandForward();
+  }
+  else if (lineLeft && lineCenter && lineRight)
+  {
+    //sparki.moveForward(); 
+  }
+  else if (!lineLeft && !lineCenter && !lineRight)
+  {
+    //follow last command
   }
 }
 
@@ -129,17 +159,16 @@ bool startMark()
 
 void displaySensorsAndStates()
 {
-  sparki.clearLCD(); // wipe screen clean each run
-  /*
+  sparki.clearLCD(); // wipe screen clean each run  
   sparki.print("Line Left: "); // show left line sensor on screen
-  sparki.println(lineLeft);
+  sparki.println(!lineLeft);
  
   sparki.print("Line Center: "); // show center line sensor on screen
-  sparki.println(lineCenter);
+  sparki.println(!lineCenter);
  
   sparki.print("Line Right: "); // show right line sensor on screen
-  sparki.println(lineRight);
- */
+  sparki.println(!lineRight);
+ /*
   sparki.print("Ping: "); // ultrasonic ping ranger on screen
   sparki.print(ping);
   sparki.println(" cm");
@@ -147,9 +176,9 @@ void displaySensorsAndStates()
   sparki.print("Object dist * 3: ");
   sparki.print(objectDistance * 3);
   sparki.println(" cm");
- 
+ */
   sparki.println(String("state = ") + state);
-
+  
   sparki.updateLCD(); //display all information written to screen
 }
 
@@ -218,7 +247,7 @@ void loop() {
   }
 
   displaySensorsAndStates();
-  delay(1000); // wait 1 second  
+  delay(10); // loops .1 a second (pings rate)
 
    /*
    int code = sparki.readIR();
