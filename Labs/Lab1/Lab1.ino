@@ -1,8 +1,29 @@
+#define START=28
+#define STOP=28
 #include <Sparki.h> // include sparki library
+
+const int threshold = 500; // line sensor threshold
+const int objectDistance = 3; // distance to object before gripping
+const int gripTime = 2000; // time to grip (2 second)
+const int turnSpeed = 0; //used to turn the robot over an external center of rotation
+const int maxObjects = 1; // total objects to retrieve
+
+int objectIndex = 0;
+bool lineLeft, lineCenter, lineRight = false;
+
+int ping = 0;
+
+String state = "undefined";
 
 void setup() {
   sparki.servo (SERVO_CENTER);
   sparki.clearLCD();
+  //indicates to the user that the program started:
+  sparki.beep(440, 300);
+  delay(300);
+  sparki.beep(880, 500);
+  sparki.gripperOpen(); // open gripper at each start
+  delay(1000);
 }
 
 // /------^-----\
@@ -16,45 +37,6 @@ void setup() {
 // | 66  82  74 |
 // \____________/
 
-void defaultLineFollowing() {
-  // line following from examples
-  int threshold = 700;
-  
-  int lineLeft   = sparki.lineLeft();   // measure the left IR sensor
-  int lineCenter = sparki.lineCenter(); // measure the center IR sensor
-  int lineRight  = sparki.lineRight();  // measure the right IR sensor
-
-  if ( lineCenter < threshold ) // if line is below left line sensor
-  {  
-    sparki.moveForward(); // move forward
-  }
-  else{
-    if ( lineLeft < threshold ) // if line is below left line sensor
-    {  
-      sparki.moveLeft(); // turn left
-    }
-  
-    if ( lineRight < threshold ) // if line is below right line sensor
-    {  
-      sparki.moveRight(); // turn right
-    }
-  }
-
-  sparki.clearLCD(); // wipe the screen
-  
-  sparki.print("Line Left: "); // show left line sensor on screen
-  sparki.println(lineLeft);
-  
-  sparki.print("Line Center: "); // show center line sensor on screen
-  sparki.println(lineCenter);
-  
-  sparki.print("Line Right: "); // show right line sensor on screen
-  sparki.println(lineRight);
-  
-  sparki.updateLCD(); // display all of the information written to the screen
-
-  delay(100); // wait 0.1 seconds
-}
 void moveLeftGran(int dist) {
   sparki.moveLeft(300);
   sparki.moveRight(200);
@@ -69,10 +51,168 @@ int readRemote() {
     return code;
    }
 }
+void moveLeft()
+{
+  //turn left at a lower speed:
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, turnSpeed);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 100);
+}
+ 
+void moveRight()
+{
+  //turn right at a lower speed:
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 100);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, turnSpeed);
+}
+void followLine(bool foundObject)
+{
+  state = "follow line";
+  if (foundObject)
+  {
+    state = "approaching";
+    if (ping <= objectDistance)
+    {
+      gripObject();
+      turnBack();
+      readSensors();
+      while (lineLeft || lineCenter || lineRight) // START is when all sensors are black/false
+      {
+        readSensors();
+        followLine(false);
+        delay(100);
+      }
+      sparki.beep(440, 300); // beeps to indicate that it has reached the START mark
+      sparki.moveForward(maxObjects - objectIndex); // passes the mark
+      releaseObject();
+      sparki.moveBackward(2); //// the constant number is a small security margin to avoid the object when turning
+      turnBack();
+
+      objectIndex++;
+      if (objectIndex == maxObjects)
+      {
+        finished();
+        while(true); // finished program
+      }
+    }
+  }
+  if (!lineLeft) // if the black line is below left line sensor
+  {
+    moveLeft(); // turn left
+  }
+  else if (!lineRight) // if black line is below right line sensor
+  {
+    moveRight(); // turn right
+  }
+  else if (lineLeft && !lineCenter && lineRight) // if line only found on center line sensor
+  {
+    sparki.moveForward(); // move foward
+  }
+}
+
+void readSensors()
+{
+  // sensor is 1 if reading white and 0 if reading black
+  lineLeft = sparki.lineLeft() > threshold;
+  lineCenter = sparki.lineCenter() > threshold;
+  lineRight = sparki.lineRight() > threshold;
+  ping = sparki.ping();
+}
+
+bool startMark()
+{
+  return !lineLeft && !lineCenter && !lineRight;
+}
+
+void displaySensorsAndStates()
+{
+  sparki.clearLCD(); // wipe screen clean each run
+  
+  sparki.print("Line Left: "); // show left line sensor on screen
+  sparki.println(lineLeft);
+ 
+  sparki.print("Line Center: "); // show center line sensor on screen
+  sparki.println(lineCenter);
+ 
+  sparki.print("Line Right: "); // show right line sensor on screen
+  sparki.println(lineRight);
+ 
+  sparki.print("Ping: "); // ultrasonic ping ranger on screen
+  sparki.print(ping);
+  sparki.println(" cm");
+ 
+  sparki.println(String("state = ") + state);
+
+  sparki.updateLCD(); //display all information written to screen
+}
+
+void gripObject()
+{
+  sparki.moveStop();
+  state = "gripping object";
+  sparki.gripperClose();
+  delay(gripTime);
+  sparki.gripperStop();
+}
+
+void releaseObject()
+{
+  sparki.moveStop();
+  state = "releasing object";
+  sparki.gripperOpen();
+  delay(gripTime);
+  sparki.gripperStop();
+}
+
+void finished()
+{
+  // work is done
+  state = "finished";
+  sparki.gripperStop();
+  sparki.moveStop();
+  displaySensorsAndStates();
+  sparki.beep(880, 300);
+  delay(300);
+  sparki.beep(440, 300);
+  delay(300);
+  sparki.beep(880, 600);
+  delay(600);
+}
+
+void centerRobot()
+{
+  readSensors(); // read's sensors again, so it can look for the line (false from moving left)
+  while(lineCenter) // false until the center sensor detects the line
+  {
+    readSensors();
+    displaySensorsAndStates();
+  }
+}
+
+void turnBack()
+{
+  state = "turn back";
+  sparki.moveLeft(90); // turn left a fixed angle so sensor can no longer see line
+  sparki.moveLeft(); // turn left until robt is centered
+  centerRobot();
+  sparki.beep(); // line has been found on the way back
+}
 
 void loop() {
   // put your main code here, to run repeatedly:
-   defaultLineFollowing();
+  readSensors();
+  if (ping < (objectDistance * 3))
+  {
+    followLine(true); // follows the line while found object
+  }
+  else
+  {
+    followLine(false);
+  }
+
+  displaySensorsAndStates();
+  delay(1000); // wait 1 second  
+
+   /*
    int code = sparki.readIR();
 
    if (code != -1){
@@ -86,5 +226,5 @@ void loop() {
     case 64:  sparki.moveStop(); break;
     //case 24:  moveLeftInfinite(); break;
    }
-  sparki.updateLCD();
+  sparki.updateLCD();*/
 }
