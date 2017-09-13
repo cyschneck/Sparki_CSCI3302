@@ -58,8 +58,8 @@ void moveLeft()
 void moveLeftandForward()
 {
   //turn left at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 15);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 45);
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 45);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 145);
 }
  
 void moveRight()
@@ -72,8 +72,14 @@ void moveRight()
 void moveRightandForward()
 {
   //turn right at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 45);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 15);
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 145);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 45);
+}
+
+void moveForwardUpdate()
+{
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 150);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 150);
 }
 
 void followLine(bool foundObject)
@@ -119,7 +125,7 @@ void followLine(bool foundObject)
   }
   else if (lineLeft && !lineCenter && lineRight) // if line only found on center line sensor
   {
-    sparki.moveForward(); // move foward 
+    moveForwardUpdate(); // move foward (FAST)
   }
   else if (!lineLeft && !lineCenter && lineRight) // both left and center see black
   {
