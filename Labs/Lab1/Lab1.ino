@@ -22,8 +22,8 @@ void setup() {
   sparki.beep(440, 300);
   delay(300);
   sparki.beep(880, 500);
-  sparki.gripperOpen(); // open gripper at each start
-  delay(1000);
+  //sparki.gripperOpen(); // open gripper at each start
+  //delay(500);
 }
 
 // /------^-----\
@@ -54,15 +54,15 @@ int readRemote() {
 void moveLeft()
 {
   //turn left at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, turnSpeed);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 100);
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 0);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 60); // 60 to slow down while turning
 }
  
 void moveRight()
 {
   //turn right at a lower speed:
-  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 100);
-  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, turnSpeed);
+  sparki.motorRotate(MOTOR_LEFT, DIR_CCW, 60);
+  sparki.motorRotate(MOTOR_RIGHT, DIR_CW, 0);
 }
 void followLine(bool foundObject)
 {
@@ -84,7 +84,7 @@ void followLine(bool foundObject)
       sparki.beep(440, 300); // beeps to indicate that it has reached the START mark
       sparki.moveForward(maxObjects - objectIndex); // passes the mark
       releaseObject();
-      sparki.moveBackward(2); //// the constant number is a small security margin to avoid the object when turning
+      sparki.moveBackward(3); //// the constant number is a small security margin to avoid the object when turning
       turnBack();
 
       objectIndex++;
@@ -116,6 +116,10 @@ void readSensors()
   lineCenter = sparki.lineCenter() > threshold;
   lineRight = sparki.lineRight() > threshold;
   ping = sparki.ping();
+  if (ping == -1) // too far or too close to something
+  {
+    ping = 100;
+  }
 }
 
 bool startMark()
@@ -126,7 +130,7 @@ bool startMark()
 void displaySensorsAndStates()
 {
   sparki.clearLCD(); // wipe screen clean each run
-  
+  /*
   sparki.print("Line Left: "); // show left line sensor on screen
   sparki.println(lineLeft);
  
@@ -135,9 +139,13 @@ void displaySensorsAndStates()
  
   sparki.print("Line Right: "); // show right line sensor on screen
   sparki.println(lineRight);
- 
+ */
   sparki.print("Ping: "); // ultrasonic ping ranger on screen
   sparki.print(ping);
+  sparki.println(" cm");
+
+  sparki.print("Object dist * 3: ");
+  sparki.print(objectDistance * 3);
   sparki.println(" cm");
  
   sparki.println(String("state = ") + state);
@@ -191,7 +199,7 @@ void centerRobot()
 void turnBack()
 {
   state = "turn back";
-  sparki.moveLeft(90); // turn left a fixed angle so sensor can no longer see line
+  sparki.moveLeft(170); // turn left a fixed angle so sensor can no longer see line (overshoots)
   sparki.moveLeft(); // turn left until robt is centered
   centerRobot();
   sparki.beep(); // line has been found on the way back
