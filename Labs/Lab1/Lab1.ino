@@ -8,6 +8,7 @@ and returns to the start mark
 
 Team: Spark-E
 Cora Schneck
+Kylee Bennett
 ********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
