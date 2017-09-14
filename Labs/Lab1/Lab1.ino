@@ -11,6 +11,7 @@ Cora Schneck
 Kylee Bennett
 Max Messenger Bouricius
 Anthony Hauger
+Douglas Allen
 
 Additional sources: http://arcbotics.com/lessons/object-retrieval/
 ********************************************/
