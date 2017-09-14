@@ -1,3 +1,14 @@
+/*******************************************
+Lab 1:
+Sparki Line Following and Object Retrieval Program
+
+Summary: Spark follows a black line on a white paper
+untl it encounters an object which it picks up
+and returns to the start mark
+
+Team: Spark-E
+Cora Schneck
+********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
 #define SOFT_RIGHT 11 //011
@@ -27,8 +38,8 @@ const int gripTime = 2000; // time to grip (2 second)
 
 bool lineLeft, lineCenter, lineRight = false; // light senesors see black or white
 
-int move_state = 0; // defines HARD/SOFT/ALL states
-int program_state = 0; // turning back, follow line, apporaching, return to start, finished
+int move_state = ALL_WHITE; // defines HARD/SOFT/ALL states
+int program_state = FOLLOW_LINE; // turning back, follow line, apporaching, return to start, finished
 bool foundObject = false; // approaching object function
 
 int ping = 0; 
@@ -105,12 +116,12 @@ void programStates()
 
   switch(program_state)
   {
-    case 0: followLine(); break;
-    case 1: approachObject(); break;
-    case 2: turnGrab(); break;
-    case 3: returnStart(); break;
-    case 4: finished(); break;
-    case 5: break; // stop all movement, end program
+    case FOLLOW_LINE: followLine(); break;
+    case APPROACHING: approachObject(); break;
+    case TURNING_BACK: turnGrab(); break;
+    case RETURN_TO_START: returnStart(); break;
+    case FINISHED: finished(); break;
+    case KILL_MOVEMENT: break; // stop all movement, end program
     default: break;
   }
 }
@@ -121,7 +132,7 @@ void followLine()
   movementStates(); // follows line (course correction to stay on path)
   if (foundObject)
   {
-    program_state = 1; // found object, approaches
+    program_state = APPROACHING; // found object, approaches
   }
 }
 
@@ -134,7 +145,7 @@ void approachObject()
   }
   else
   {
-    program_state = 2; // at the point to turn/grab
+    program_state = TURNING_BACK; // at the point to turn/grab
   }
 }
 
@@ -142,15 +153,15 @@ void turnGrab()
 {
   gripObject(); // grabs object for gripTime time
   turnBack(); // turn around on the graph, to return to start
-  program_state = 3; // return to start  
+  program_state = RETURN_TO_START; // return to start  
 }
 
 void returnStart()
 {
   movementStates(); // follow path (course correction to stay on path back to start)
-  if (move_state == 111) // all black: start line determined when all sensors see black
+  if (move_state == ALL_BLACK) // all black: start line determined when all sensors see black
   {
-    program_state = 4; // finished
+    program_state = FINISHED; // finished
   }
 }
 
@@ -170,7 +181,7 @@ void finished()
 void stopAllMovement()
 {
   state = "done";
-  program_state = 5;
+  program_state = KILL_MOVEMENT;
   displaySensorsAndStates();
 }
 
@@ -181,14 +192,14 @@ void movementStates()
   
   switch(move_state) 
   {
-    case 100: moveLeft(); break;
-    case 110: moveLeftandForward(); break;
-    case 10: moveForwardUpdate(); break; // moves forward quickly
-    case 11: moveRightandForward(); break;
-    case 1: moveRight(); break;
-    case 111: break;
-    case 0: break;
-    default: break;
+    case HARD_LEFT: moveLeft(); break;
+    case SOFT_LEFT: moveLeftandForward(); break;
+    case FORWARD_CENTER: moveForwardUpdate(); break; // moves forward quickly
+    case SOFT_RIGHT: moveRightandForward(); break;
+    case HARD_RIGHT: moveRight(); break;
+    case ALL_BLACK: break; // keeps doing previous action
+    case ALL_WHITE: break; // keeps doing previous action
+    default: break; // keeps doing previous action
   }
 }
 
@@ -268,7 +279,7 @@ void turnBack()
 
 void loop() {
   // put your main code here, to run repeatedly: follows the line and only changes behavior is it sees an object
-  if (program_state != 5) // while the program isn't done
+  if (program_state != KILL_MOVEMENT) // while the program isn't done
   {
     readSensors();
     if (ping < (objectDistance * 3))
