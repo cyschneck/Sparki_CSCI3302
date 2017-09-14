@@ -9,6 +9,10 @@ and returns to the start mark
 Team: Spark-E
 Cora Schneck
 Kylee Bennett
+Max Messenger Bouricius
+Anthony Hauger
+
+Additional sources: http://arcbotics.com/lessons/object-retrieval/
 ********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
