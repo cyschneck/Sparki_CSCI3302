@@ -281,7 +281,8 @@ void turnBack()
   centerRobot();
 }
 
-void loop() {
+/*
+void loop {
   // put your main code here, to run repeatedly: follows the line and only changes behavior is it sees an object
   if (program_state != KILL_MOVEMENT) // while the program isn't done
   {
@@ -297,3 +298,21 @@ void loop() {
     delay(10); // loops .01 a second (pings rate)
   }
 }
+*/
+
+
+void loop() {
+  if ((millis() % 100) == 0) {
+    //sparki.println("Milliseconds: ");
+    //sparki.print(millis());
+
+    
+    sparki.updateLCD();
+  }
+  
+}
+
+
+
+//void loop() {
+
