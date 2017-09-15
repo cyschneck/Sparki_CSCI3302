@@ -9,11 +9,15 @@ and returns to the start mark
 Team: Spark-E
 Cora Schneck
 Kylee Bennett
+<<<<<<< HEAD
+Anthony Hauger
+=======
 Max Messenger Bouricius
 Anthony Hauger
 Douglas Allen
 
 Additional sources: http://arcbotics.com/lessons/object-retrieval/
+>>>>>>> 2b7e96a09a99f3620cd0387840414a34dfa6df9c
 ********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
