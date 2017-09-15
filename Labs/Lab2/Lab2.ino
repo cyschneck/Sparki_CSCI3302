@@ -11,7 +11,12 @@ Max Messenger Bouricius
 Anthony Hauger
 Douglas Allen
 
-Additional sources: 
+
+
+TODO:
+- We've got our updatePosition function working; simply pass in 
+
+Additional sources: http://arcbotics.com/lessons/object-retrieval/
 ********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
@@ -34,6 +39,8 @@ Additional sources:
 #define FINISHED 4
 #define KILL_MOVEMENT 5
 
+
+
 #include <Sparki.h> // include sparki library
 
 const int threshold = 500; // line sensor threshold
@@ -51,6 +58,10 @@ float xPos = 0;
 float yPos = 0;
 float rotPos = 0;
 
+// Define movement amounts (units: meters and degrees per 100ms)
+float moveUnit = 0.000002784;
+float rotUnit = 0.00374961;
+
 int ping = 0; 
 
 String state = "undefined"; // print program state on display
@@ -58,17 +69,16 @@ String state = "undefined"; // print program state on display
 void setup() {
   sparki.servo (SERVO_CENTER);
   sparki.clearLCD();
-  delay(2000);
+  delay(500);
   //timeMovement(30);
   //moveForwardTime(2000);
   //timeRotation(90);
   displayPosition(0.5, 0.7, 0.9);
   displayPosition(0.5, 0.7, 0.9);
-
-  
   
 }
 
+// Remote mappings cheat sheet:
 // /------^-----\
 // |            |
 // | 69  70  71 |
