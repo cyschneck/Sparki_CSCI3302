@@ -11,7 +11,7 @@ Max Messenger Bouricius
 Anthony Hauger
 Douglas Allen
 
-Additional sources: http://arcbotics.com/lessons/object-retrieval/
+Additional sources: 
 ********************************************/
 // Defines states for following a path (sensor states)
 #define HARD_RIGHT 1 //001
