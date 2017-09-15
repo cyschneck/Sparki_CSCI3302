@@ -1,10 +1,8 @@
 /*******************************************
-Lab 1:
-Sparki Line Following and Object Retrieval Program
+Lab 2:
+Sparki Odometry
 
-Summary: Spark follows a black line on a white paper
-untl it encounters an object which it picks up
-and returns to the start mark
+Summary: <INSERT SUMMARY HERE>
 
 Team: Spark-E
 Cora Schneck
