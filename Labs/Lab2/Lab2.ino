@@ -2,15 +2,16 @@
   Lab 2:
   Sparki Odometry
 
-  Summary: <INSERT SUMMARY HERE>
-
+  Summary: Track and print X, Y displacement from 
+  the start line (0.0 m, 0.0m, 0.0 degrees) as
+  well as heading
+  
   Team: Spark-E
   Cora Schneck
   Kylee Bennett
   Max Messenger Bouricius
   Anthony Hauger
   Douglas Allen
-  TODO:/theta doesn't work (TODO: fix)
 ********************************************/
 
 #include <Sparki.h> // include the sparki library
@@ -30,9 +31,9 @@ double ax_length = 0.0851; // m or 8.51 cm
 double speed_rotation = 37.4961; // degrees/second
 
 float posX, posY = 0.0;
-float theta = pi; // Initially facing left down the start line (pi radians and 180 degress) 
+float theta = 0.0; // rotates around in degrees 
 
-int threshold = 500;
+int threshold = 500; // white > 500, black < 500
 
 bool lineLeft, lineCenter, lineRight;
 
@@ -43,58 +44,63 @@ void setup()
 
 void resetAtStart(bool lineRight, bool lineCenter, bool lineLeft)
 {
+    // robot has returned to origin, reset position vectors
+    // all sensors are true = sensors < threshold = all sensors are black
     if (lineRight && lineCenter && lineLeft ) {
       // at start line, reset position values
-      posX, posY = 0.0;
+      posX, posY = 0.0; 
+      // does not reset theta since it could be 180 (opposite direction)
     }
 }
 
-void loop() {
-  start_time = millis();
-  while (millis() < start_time + 100){
-    // Wait for sparki to move for 100 milliseconds to get on line
-  }
-  
-  lineLeft   = sparki.lineLeft() < threshold;   // measure the left IR sensor
-  lineCenter = sparki.lineCenter() < threshold; // measure the center IR sensor
-  lineRight  = sparki.lineRight() < threshold;  // measure the right IR sensor
-
-  if (lineCenter) // if line is below left line sensor
-  {  
-    sparki.moveForward(); // move forward
-    posX += cos(theta) * (velocity * 0.1);
-    posY += sin(theta) * (velocity * 0.1);
-
-    resetAtStart(lineRight, lineCenter, lineLeft);
-  }
-  else{ //theta doesn't work (TODO: fix)
-    if (lineLeft) // if line is below left line sensor
-    {  
-      sparki.moveLeft(); // turn left
-      theta -= (speed_rotation * 0.1);// / ax_length;
-    }
-  
-    if (lineRight) // if line is below right line sensor
-    {  
-      sparki.moveRight(); // turn right
-      theta += (speed_rotation * 0.1);// / ax_length;
-    }
-  }
-
+void displayPositionAndHeading(float posX, float posY, float theta)
+{
   sparki.clearLCD(); // wipe the screen
   
-  sparki.print("X: "); // show left line sensor on screen
+  sparki.print("X: ");
   sparki.print(posX);
-  sparki.println(" m");
+  sparki.println(" m"); // print x displacement in meters
   
-  sparki.print("Y: "); // show center line sensor on screen
+  sparki.print("Y: ");
   sparki.print(posY);
   sparki.println(" m");
 
-  sparki.print("Theta: "); // show right line sensor on screen
-  theta = (theta/pi)*180.0; //convert radians to degrees to print
+  sparki.print("Theta:");
   sparki.print(theta); 
-  sparki.println(" degrees");
+  sparki.println(" degrees"); // print y displacement in meters
   
   sparki.updateLCD(); // display all of the information written to the screen
+}
+void loop() {
+  start_time = millis();
+  while (millis() < start_time + 100){
+    // Wait for sparki to move for 100 milliseconds
+  }
+  lineLeft   = sparki.lineLeft() < threshold;   // measure the left IR sensor (is black)
+  lineCenter = sparki.lineCenter() < threshold; // measure the center IR sensor (is black)
+  lineRight  = sparki.lineRight() < threshold;  // measure the right IR sensor (is black)
+
+  if (lineCenter) // if the center line is black
+  {  
+    sparki.moveForward(); // move forward
+    posX = posX + (cos(theta) * (velocity * 0.1));
+    posY = posY + (sin(theta) * (velocity * 0.1));
+
+    resetAtStart(lineRight, lineCenter, lineLeft); // if center line is black, checks to see if has returned to origin
+  }
+  else{
+    if (lineLeft) // if the left line is black
+    {  
+      sparki.moveLeft(); // course correct if left line is black (move left until it is white)
+      theta = theta - 0.1*(speed_rotation);
+      theta = fmod(theta, 360); // fmod (floating point module) 360 to keep theta between 0-360
+    }
+    if (lineRight) // if right line is black
+    {  
+      sparki.moveRight(); // course correct if right line is black (move right until it is white)
+      theta = theta + 0.1*(speed_rotation);
+      theta = fmod(theta, 360); // fmod (floating point module) 360 to keep theta between 0-360
+    }
+  }
+  displayPositionAndHeading(posX, posY, theta);
 }
