@@ -20,5 +20,5 @@ a,b,c are "Controller Gains"
                     nu=theta_goal-theta_start
 2. Find the robot speed: x_r'=a(dot)rho
                          theta_r'=b(dot)alpha+c(dot)nu
-3. Calculate the wheel speed: phi_l = (2(x_r'/r)-theta'(dot)(d))/2
-                              phi_r = (2(x_r'/r)+theta'(dot)(d))/2
+3. Calculate the wheel speed: phi_l = (2(x_r'/r)-theta'(dot)(d))/2r
+                              phi_r = (2(x_r'/r)+theta'(dot)(d))/2r
