@@ -30,11 +30,21 @@
 float maxspeed=0.0285;    // [m/s] speed of the robot that you measured
 float alength=0.0851;     // [m] axle length  
 float phildotr=0, phirdotr=0; // wheel speeds that you sent to the motors
-float Xi=0, Yi=0, Thetai=0;
+float Xi=0, Yi=0, Thetai=0;   // current odometry readings
+
+float Xg=0, Yg=0, Thetag=0;    // goal positions
+
 float Xrdot, Thetardot;
 
 void setup() 
 {
+}
+
+// TODO:
+// implement distToGoal function that calculates distance from current point to goal point via pythagorean
+
+distToGoal() {
+  
 }
 
 void loop() {
@@ -45,7 +55,9 @@ void loop() {
   int lineCenter = sparki.lineCenter(); // measure the center IR sensor
   int lineRight  = sparki.lineRight();  // measure the right IR sensor
 
+  // If we should be moving forward 
   if ( lineCenter < threshold ) // if line is below left line sensor
+  // if (distToGoal < 0.01)
   {  
     sparki.moveForward(); // move forward
     phildotr=maxspeed;
@@ -76,7 +88,7 @@ void loop() {
   sparki.print("/");
   sparki.print(Thetai);
   sparki.println();
-    
+
   sparki.updateLCD(); // display all of the information written to the screen
 
   // perform odometry
