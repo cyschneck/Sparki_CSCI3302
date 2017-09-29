@@ -1,103 +1,109 @@
-/************************************************************
-* CSCI3302 Introduction to Robotics
-* (c) Nikolaus Correll
-*
-* Lab 2: Odometry
-*
-* The goal of this lab is to keep track of the robot's position
-* by integrating all motion commands sent to the motors. In order
-* to accurately track the physics of the robot, it is important
-* that you control loop execution time.
-*
-* What do you learn:
-*
-* - Applying basic forward kinematics equations
-* - Implementing timed execution
-*
-* Tricks:
-*
-* - Find out what the maximum motor speed is by letting the robot
-*   move forward a known distance (MoveForward(30), e.g. to move 30cm)
-*   and stop the time it takes using millis(). 
-* - Functions like MoveRight() don't reveal what motor commands
-*   are actually sent. Observe the robot carefully or replace them
-*   with commands that explicitely set motorspeeds. 
-***************************************************************/
+/*******************************************  
+  Lab 3.1:
+  Sparki Odometry
 
+  Summary: Track and print X, Y displacement from 
+  the start line (0.0 m, 0.0m, 0.0 degrees) as
+  well as heading
+  
+  Team: Spark-E
+  Cora Schneck
+  Kylee Bennett
+  Max Messenger Bouricius
+  Anthony Hauger
+  Douglas Allen
+********************************************/
 
-#include <Sparki.h>       // include the sparki library
+#include <Sparki.h> // include the sparki library
 
-float maxspeed=0.0285;    // [m/s] speed of the robot that you measured
-float alength=0.0851;     // [m] axle length  
-float phildotr=0, phirdotr=0; // wheel speeds that you sent to the motors
-float Xi=0, Yi=0, Thetai=0;   // current odometry readings
+unsigned long start_time; // start time recaculuated at the beginning of each loop
+const float pi = 3.1415926535897932384626;
+// 30 cm travelled in 10773 milliseconds = 30/10773 cm/milliseconds
+    // 30/10.773 cm/s = 2.7847 cm/s
+    // 0.3/10.773 m/s= 0.02785 m/s
+double velocity = 0.02785; // m/s
+double ax_length = 0.0851; // m or 8.51 cm
 
-float Xg=0, Yg=0, Thetag=0;    // goal positions
+// time it takes to rotate 360 = 37.4961 degrees/s
+// time to move 360 left = 9601 ms
+// time to move 360 right = 9599 ms
+// time to move 360 = 9600 ms = 9.6 seconds
+double speed_rotation = 37.4961; // degrees/second
 
-float Xrdot, Thetardot;
+float posX, posY = 0.0;
+float theta = 0.0; // rotates around in degrees 
 
-void setup() 
+int threshold = 500; // white > 500, black < 500
+
+bool lineLeft, lineCenter, lineRight;
+//int map[4][4];
+
+void setup()
 {
+  sparki.clearLCD();
 }
 
-// TODO:
-// implement distToGoal function that calculates distance from current point to goal point via pythagorean
-
-distToGoal() {
-  
+void resetAtStart(bool lineRight, bool lineCenter, bool lineLeft)
+{
+    // robot has returned to origin, reset position vectors
+    // all sensors are true = sensors < threshold = all sensors are black
+    if (lineRight && lineCenter && lineLeft ) {
+      // at start line, reset position values
+      posX, posY = 0.0; 
+      // does not reset theta since it could be 180 (opposite direction)
+    }
 }
 
-void loop() {
-  long int time_start = millis();
-  int threshold = 700;
-  
-  int lineLeft   = sparki.lineLeft();   // measure the left IR sensor
-  int lineCenter = sparki.lineCenter(); // measure the center IR sensor
-  int lineRight  = sparki.lineRight();  // measure the right IR sensor
-
-  // If we should be moving forward 
-  if ( lineCenter < threshold ) // if line is below left line sensor
-  // if (distToGoal < 0.01)
-  {  
-    sparki.moveForward(); // move forward
-    phildotr=maxspeed;
-    phirdotr=maxspeed;
-  }
-  else{
-    if ( lineLeft < threshold ) // if line is below left line sensor
-    {  
-      sparki.moveLeft(); // turn left
-      phildotr=-maxspeed;
-      phirdotr=maxspeed;
-    }
-  
-    if ( lineRight < threshold ) // if line is below right line sensor
-    {  
-      sparki.moveRight(); // turn right
-      phildotr=maxspeed;
-      phirdotr=-maxspeed;
-    }
-  }
-
-
+void displayPositionAndHeading(float posX, float posY, float theta)
+{
   sparki.clearLCD(); // wipe the screen
   
-  sparki.print(Xi);
-  sparki.print("/");
-  sparki.print(Yi);
-  sparki.print("/");
-  sparki.print(Thetai);
-  sparki.println();
-
-  sparki.updateLCD(); // display all of the information written to the screen
-
-  // perform odometry
-  Xrdot=phildotr/2.0+phirdotr/2.0;
-  Thetardot=phirdotr/alength-phildotr/alength;
+  sparki.print("X: ");
+  sparki.print(posX);
+  sparki.println(" m"); // print x displacement in meters
   
-  Xi=Xi+cos(Thetai)*Xrdot*0.1;
-  Yi=Yi+sin(Thetai)*Xrdot*0.1;
-  Thetai=Thetai+Thetardot*0.1;
+  sparki.print("Y: ");
+  sparki.print(posY);
+  sparki.println(" m");
 
-  while(millis()<time_start+100); // wait until 100ms have elapsed
+  sparki.print("Theta:");
+  sparki.print(theta); 
+  sparki.println(" degrees"); // print y displacement in meters
+  
+  sparki.updateLCD(); // display all of the information written to the screen
+}
+void loop() {
+  start_time = millis();
+  int cm = sparki.ping(); // measures the distance with Sparki's eyes
+    
+  while (millis() < start_time + 100){
+    // Wait for sparki to move for 100 milliseconds
+  }
+  lineLeft   = sparki.lineLeft() < threshold;   // measure the left IR sensor (is black)
+  lineCenter = sparki.lineCenter() < threshold; // measure the center IR sensor (is black)
+  lineRight  = sparki.lineRight() < threshold;  // measure the right IR sensor (is black)
+
+  if (lineCenter) // if the center line is black
+  {  
+    sparki.moveForward(); // move forward
+    posX = posX + (cos(theta) * (velocity * 0.1));
+    posY = posY + (sin(theta) * (velocity * 0.1));
+
+    resetAtStart(lineRight, lineCenter, lineLeft); // if center line is black, checks to see if has returned to origin
+  }
+  else{
+    if (lineLeft) // if the left line is black
+    {  
+      sparki.moveLeft(); // course correct if left line is black (move left until it is white)
+      theta = theta - 0.1*(speed_rotation);
+      theta = fmod(theta, 360); // fmod (floating point module) 360 to keep theta between 0-360
+    }
+    if (lineRight) // if right line is black
+    {  
+      sparki.moveRight(); // course correct if right line is black (move right until it is white)
+      theta = theta + 0.1*(speed_rotation);
+      theta = fmod(theta, 360); // fmod (floating point module) 360 to keep theta between 0-360
+    }
+  }
+  displayPositionAndHeading(posX, posY, theta);
 }
