@@ -1,10 +1,8 @@
 /*******************************************  
-  Lab 2:
-  Sparki Odometry
+  Lab 3.1:
+  Sparki Mapping Obstacles
 
-  Summary: Track and print X, Y displacement from 
-  the start line (0.0 m, 0.0m, 0.0 degrees) as
-  well as heading
+  Summary: 
   
   Team: Spark-E
   Cora Schneck
