@@ -1,12 +1,10 @@
 /*******************************************  
   Lab 3.1:
-<<<<<<< HEAD
   Sparki Odometry
-=======
-  Sparki Mapping Obstacles
->>>>>>> 54d4efa380e39123ff8d7bd0397b1deb329bffad
 
-  Summary: 
+  Summary: Track and print X, Y displacement from 
+  the start line (0.0 m, 0.0m, 0.0 degrees) as
+  well as heading
   
   Team: Spark-E
   Cora Schneck
@@ -15,29 +13,13 @@
   Anthony Hauger
   Douglas Allen
 ********************************************/
-/*
-61cm wide -> 128px wide
-61/4=15.25cm between [0][0] and [0][1]
-128/61=2.09px/cm
-61/4=15.25cm*2.09px/cm=31.8725px
-47cm tall -> 64px tall
-47/4=11.75cm between [0][0] and [1][0]
-47/64=1.36px/cm
-47/4=11.75cm*1.36px/cm=15.98px
-*/
-/*
-60cm wide -> 128px wide
-60/4=15cm [0][0]->[0][1]
-128/60=2.13px/cm
-60/4=15cm*2.13px/cm=31.95px distance between [0][0]->[0][1]
-48cm tall -> 64px tall
-48/4=12cm [0][0]->[1][0]
-64/48=1.33px/cm
-48/4=12cm*1.33px/cm=15.96px distance between [0][0]->[1][0]
-*/
-
 
 #include <Sparki.h> // include the sparki library
+  
+#define  GRID_WIDTH  15.25
+#define GRID_HEIGHT 11.75
+#define PIXEL_WIDTH 31.8725
+#define PIXEL_HEIGHT  15.98
 
 unsigned long start_time; // start time recaculuated at the beginning of each loop
 const float pi = 3.1415926535897932384626;
@@ -50,6 +32,7 @@ int servoDir = 1;     // 1 = moving right, -1 = moving left
 int servoCur = 0;   // Current angle of servo
 int servoSpd = 5;   // Speed of servo rotation (in degrees per 100ms)
 int servoRange = 60;  // How much servo can rotate in either diretion (degrees)
+int coordinates[2];
 
 float range = 0;      // Ping value (cm?)
   
@@ -65,6 +48,25 @@ float theta = 0.0; // rotates around in degrees
 int threshold = 500; // white > 500, black < 500
 
 bool lineLeft, lineCenter, lineRight;
+
+//function 1 - "assigns a single number to each index of your 2D map"
+int grid_to_graph(int x, int y){ //takes an x and y coordinate as input and returns a single number representing the graph node number
+  int graph_i = (int) x/GRID_WIDTH;
+  int graph_j = (int) y/GRID_HEIGHT;
+  int graph_value = (4*i)+j;
+  
+  return graph_value;
+}
+//function 2 - "one that takes an index and returns the 2D coordinates"
+int graph_to_xyCoordinates(int graph_index){ //takes in the graph index and returns an array that acts as a tuple.
+  float x_value = (graph_index/4)*GRID_WIDTH;
+  float y_value = (graph_index%4)*GRID_WIDTH;
+  coordinates[0] = x_value;
+  coordinates[1] = y_value;
+  
+  return coordinates;
+}
+//function 3 - "returns the cost to move from one cell to another given by its index"
 
 void setup()
 {
@@ -103,6 +105,7 @@ void displayPositionAndHeading(float posX, float posY, float theta)
   
   sparki.updateLCD(); // display all of the information written to the screen
 }
+
 void loop() {
   start_time = millis();
   while (millis() < start_time + 100){
@@ -123,8 +126,6 @@ void loop() {
   servoCur += (servoDir*servoSpd);
   sparki.servo(servoCur);
   range = sparki.ping();
-  
-  
 
   lineLeft   = sparki.lineLeft() < threshold;   // measure the left IR sensor (is black)
   lineCenter = sparki.lineCenter() < threshold; // measure the center IR sensor (is black)
@@ -155,3 +156,34 @@ void loop() {
 
   displayPositionAndHeading(posX, posY, theta);
 }
+
+
+
+
+
+
+
+
+
+
+/*
+61cm wide -> 128px wide
+61/4=15.25cm between [0][0] and [0][1]
+128/61=2.09px/cm
+61/4=15.25cm*2.09px/cm=31.8725px
+47cm tall -> 64px tall
+47/4=11.75cm between [0][0] and [1][0]
+47/64=1.36px/cm
+47/4=11.75cm*1.36px/cm=15.98px
+*/
+/*
+60cm wide -> 128px wide
+60/4=15cm [0][0]->[0][1]
+128/60=2.13px/cm
+60/4=15cm*2.13px/cm=31.95px distance between [0][0]->[0][1]
+48cm tall -> 64px tall
+48/4=12cm [0][0]->[1][0]
+64/48=1.33px/cm
+48/4=12cm*1.33px/cm=15.96px distance between [0][0]->[1][0]
+*/
+
