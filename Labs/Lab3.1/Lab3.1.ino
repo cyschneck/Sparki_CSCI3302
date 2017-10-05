@@ -55,30 +55,31 @@ bool lineLeft, lineCenter, lineRight;
 int grid_to_graph(int x, int y){ //takes an x and y coordinate as input and returns a single number representing the graph node number
   int graph_i = (int) x/GRID_WIDTH; //grid_width and height defined above
   int graph_j = (int) y/GRID_HEIGHT;
-  int graph_value = (4*i)+j; //multiply to find 0-15 value
+  int graph_value = (4*graph_i)+graph_j; //multiply to find 0-15 value
   
   return graph_value;
 }
 //function 2 - "one that takes an index and returns the 2D coordinates"
-int graph_to_xyCoordinates(int graph_index){ //takes in the graph index and returns an array that acts as a tuple.
+int * graph_to_xyCoordinates(int graph_index){ //takes in the graph index and returns an array that acts as a tuple.
   float x_value = (graph_index/4)*GRID_WIDTH; //divide by four to get i value
   float y_value = (graph_index%4)*GRID_WIDTH; //modulo by four to get j
   coordinates[0] = x_value;
   coordinates[1] = y_value;
-  
+
   return coordinates; //return array of [x,y] --> could do dictionary maybe?
 }
 //function 3 - "returns the cost to move from one cell to another given by its index"
 int distance_to(int graph_index, int graph_go_to){
   //initialize distance array as a no-movement array
-  int i = 0;
-  int j = 0;
-  while i<4{
-    while j<4{
+  int i, j = 0;
+  while (i<4)
+  {
+    while (j<4)
+    {
       distance[i][j]=99;
-      j++
+      j++;
     }
-    i++
+    i++;
   }
   //find i and j from the graph indices
   i = graph_index/4;
@@ -86,12 +87,13 @@ int distance_to(int graph_index, int graph_go_to){
   //set the current space to zero to ensure Sparki doesn't stop moving or have a fault
   distance[i][j]=0;
 
-  if obstacle_graph[graph_go_to] == 1{ //once we get object placing, this ensures that if there's an object we don't move there
+  if (obstacle_graph[graph_go_to] == 1)
+  { //once we get object placing, this ensures that if there's an object we don't move there
     return 99;
   }
   else{
     int distance = abs(graph_index - graph_go_to); //if distance is 1 or 4, the spaces are adjacent
-    if (distance == 1 || distance == 4) //check
+    if ((distance == 1) || (distance == 4)){ //check
       return 1; //return 1 for your distance as the grid is one space away
     }
     else{
