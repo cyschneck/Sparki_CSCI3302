@@ -33,6 +33,8 @@ int servoCur = 0;   // Current angle of servo
 int servoSpd = 5;   // Speed of servo rotation (in degrees per 100ms)
 int servoRange = 60;  // How much servo can rotate in either diretion (degrees)
 int coordinates[2];
+int obstacle_graph[16]; //if index == 0, obstacle; if index == 1, navigable
+int distance[4][4];
 
 float range = 0;      // Ping value (cm?)
   
@@ -67,6 +69,33 @@ int graph_to_xyCoordinates(int graph_index){ //takes in the graph index and retu
   return coordinates;
 }
 //function 3 - "returns the cost to move from one cell to another given by its index"
+int distance_to(int graph_index, int graph_go_to){
+  int i = 0;
+  int j = 0;
+  while i<4{
+    while j<4{
+      distance[i][j]=99;
+      j++
+    }
+    i++
+  }
+  i = graph_index/4;
+  j = graph_index%4;
+  distance[i][j]=0;
+
+  if obstacle_graph[graph_go_to] == 1{
+    return 99;
+  }
+  else{
+    int distance = abs(graph_index - graph_go_to);
+    if (distance == 1 || distance == 4)
+      return 1;
+    }
+    else{
+      return 99;
+    }
+  }
+}
 
 void setup()
 {
