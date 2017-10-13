@@ -114,6 +114,7 @@ int check_adjacency(int point_1, int point_2){
       }
 }
 
+//POSSIBLY UNNEEDED 19:37
 int space_distance(int point_1, int point_2){
     //obtains an absolute value (0-15) of the distance between two nodes
     //take that distance and divides by four+mods by four
@@ -128,7 +129,7 @@ int space_distance(int point_1, int point_2){
 
 void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distance[16])
 {
-    int i,u,count,w,flag[16],min; //flag is if node has been looked at.
+    int i,u,x,y,z,count,w,flag[16],min; //flag is if node has been looked at.
 
     //resets flag to all 0, returns distance with 1 (adjacent and no object) or 99 (not adjacent or no object)
     for(i=0;i<=node;i++) 
@@ -153,6 +154,8 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distan
         {
             if(distance[w]<min && !flag[w]){
                 min=distance[w];
+		x= (int) w/4;
+		y= w%4; //x,y are the 4x4 coordinates of w
 		u=w;
 		}
         }
@@ -160,10 +163,19 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distan
         count++;
         for(w=0;w<=node;w++)
         {
-	    cost[u]=space_distance(u, w);
+	    z=space_distance(u, w);
             if((distance[u]+cost[w]<distance[w]) && !flag[w]){
                 distance[w]=distance[u]+cost[u][w];
         }
+    }
+    if (___==goal){
+	return True;
+    }
+    else{
+	//call Dijkstra's again
+
+	if (something == True){
+	    //Append node to the path array here
     }
 }
 
