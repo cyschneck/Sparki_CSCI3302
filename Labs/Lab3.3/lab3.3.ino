@@ -19,9 +19,77 @@
 *   be rotated from what you are using. 
 ***************************************************************/
 
+/*Lab 3.3
+   1. Write code that calculates an X-Y coordinate in the real world based on the 
+   I-J coordinates of your 2D map. This coordinate should be the center of each grid cell.
+   
+      float arrayToWorldX(int arrayIndex) {
+        // Input: grid index on array (int)
+        // Output: x world coordinate (float)
+    int x = arrayIndex/4;
+        float xWorld = (x*GRID_WIDTH) + (.5*GRID_WIDTH);
+        return(xWorld);
+        
+      float arrayToWorldY(int arrayIndex) {
+        // Input: grid index on array (int)
+        // Output: y world coordinate (float)
+        int y = arrayIndex%4;
+        float yWorld = (y*GRID_HEIGHT) + (.5*GRID_HEIGHT);
+        return(yWorld);
+        
+      float coordToWorldX(int i) {
+        // Input: i coordinate on grid (int)
+        // Output: x world coordinate (float)
+        float xWorld = (i*GRID_WIDTH) + (.5*GRID_WIDTH);
+        return(xWorld);
+        
+      float coordToWorldY(int j) {
+        // Input: j coordinate on grid (int) 
+        // Output: y world coordinate (float)
+        float yWorld = (j*GRID_HEIGHT) + (.5*GRID_HEIGHT);
+        return(yWorld);
+      }
+ 
+ 
+    2. Implement a state machine that pulls an entry from the route, calculate its X-Y coordinate 
+    and then use feedback control to drive there. Pull the next coordinate of the stack once the 
+    robot is close enough to the last waypoint.
+      
+      //global variable:
+      int distance_size = 0;
+      int grid_space = 999;
+      stack goal = new Stack();
+      
+      void traversal_stack(int grid_space, int dist[]){
+        // we are going to build a stack for traversal
+        for (int x = 0; x < distance_size(dist[]), x++){
+            goal.push(dist[x]);
+        }
+      }
+      
+      // This is used to find all available nodes we go to in the found path
+      int distance_size(int dist[]){
+        for (int x = 0; x < 16; x++){
+          if (dist[x] != 0){ // if there is a 0 here, then there must be no more nodes to go to
+              distance_size++;
+            } else {
+              return distance_size;
+            }
+        }
+      }
+      
+*/
+
+/*
+
+
+*/
 
 #include <Sparki.h>       // include the sparki library
 
+#define INF 999
+
+// Setting up lab 3.1
 float maxspeed=0.0285;    // [m/s] speed of the robot that you measured
 float alength=0.0851;     // [m] axle length  
 float phildotr=0, phirdotr=0; // wheel speeds that you sent to the motors
@@ -35,11 +103,32 @@ float Thetag=0;
 float alpha, rho, eta; // error between positions in terms of angle to the goal, distance to the goal, and final angle
 float a=0.1, b=1, c=0.1; // controller gains
 
+// Setting up lab 3.2
+// map of obstalces on the map
+int grid[4][4]={  
+   {0, 0, 0, 0} , /*  initializers for row indexed by 0 */
+   {1, 1, 0, 1} , /*  initializers for row indexed by 1 */
+   {0, 0, 0, 0} , /*  initializers for row indexed by 2 */
+   {1, 0, 1, 0}   /*  initializers for row indexed by 3 */
+};
+
+int dist[16]; // distance to each node (cost)
+int go_to[16];
+
+int pos = 0; // robot position given as index on the graph
+int goal= 13;// desired position
+
+  
 void setup() 
 {
+  // Setting up lab 3.2
+  dij(15,goal,dist); // calculate a map to go to node "13"
+  Serial.println("Starting...");
+  //displayMapSpace();   --> LOOK AT BOTTOM, IN COMMENT
 }
 
 void loop() {
+  // for lab 3.1
   long int time_start = millis();
   int threshold = 700;
 
@@ -97,7 +186,7 @@ void loop() {
   {
     sparki.moveStop();
   }
-  
+  /*
   sparki.clearLCD(); // wipe the screen
   
   sparki.print(Xi);
@@ -110,7 +199,7 @@ void loop() {
   sparki.println();
     
   sparki.updateLCD(); // display all of the information written to the screen
-
+  */
   // perform odometry
   Xrdot=phildotr/2.0+phirdotr/2.0;
   Thetardot=phirdotr/alength-phildotr/alength;
@@ -120,38 +209,24 @@ void loop() {
   Thetai=Thetai+Thetardot*0.1;
 
   while(millis()<time_start+100); // wait until 100ms have elapsed
+  
+  // for lab 3.2
+  dij(15,goal,dist); // calculate a map to go to node "13"
+  int i;
+
+  for(i=0;i<16;i++){
+         if(dist[i]!=99) 
+          Serial.print(go_to[i]);
+         else
+          Serial.print("#");
+        Serial.print(" ");
+        if((i+1)%4==0) Serial.println();
+  }
+  Serial.println();
 }
 
-/* 
- *  
-*/
 
-/************************************************************
-* CSCI3302 Introduction to Robotics
-* (c) Nikolaus Correll
-*
-* Lab 3.2: Path Planning
-*
-***************************************************************/
-
-
-#include <Sparki.h>       // include the sparki library
-
-
-int grid[4][4]={  
-   {0, 0, 0, 0} , /*  initializers for row indexed by 0 */
-   {1, 1, 0, 1} , /*  initializers for row indexed by 1 */
-   {0, 0, 0, 0} , /*  initializers for row indexed by 2 */
-   {1, 0, 1, 0}   /*  initializers for row indexed by 3 */
-};
-
-int dist[16];
-int go_to[16];
-
-int pos = 0; // robot position given as index on the graph
-int goal= 13;// desired position
-
-
+// functions from lab 3.2 path planning
 int cost(int i,int j){
   int x1 = i / 4;
   int y1 = i % 4;
@@ -172,13 +247,31 @@ int cost(int i,int j){
   
 }
 
+/*
+int worldToArray(float xWorld, float yWorld) {
+// Converts Sparki's x and y world coordinates (floats) to integers of array
+}
+
+
+
+
+int worldToGrid(xWorld, yWorld)
+
+
+*/
+
+
+
+
+
 void dij(int n,int v,int dist[])
+// n = number of nodes v = goal node int dist[] = array to go to?
 {
  int i,u,count,w,flag[16],min;
 
  for(i=0;i<=n;i++)
   flag[i]=0, dist[i]=99; // initialize every node with cost-to-goal (infinity if not adjacent)
- dist[goal]=0;
+ dist[v]=0;
  count=1;
  while(count<=n)
  {
@@ -199,49 +292,22 @@ void dij(int n,int v,int dist[])
 }
 
 
-
-void setup() 
-{
-  dij(15,goal,dist); // calculate a map to go to node "13"
-  Serial.println("Starting...");
-
-}
-
-void loop() {
-
-    dij(15,goal,dist); // calculate a map to go to node "13"
- 
-    int i;
-  /*for(i=0;i<16;i++){
-      if(i%4==0) Serial.println();
-    if(dist[i]!=99) 
-     Serial.print(dist[i]);
-    else
-     Serial.print("#");
-    Serial.print(" ");
-  }
-  Serial.println();*/
-
-  for(i=0;i<16;i++){
-         if(dist[i]!=99) 
-          Serial.print(go_to[i]);
-         else
-          Serial.print("#");
-        Serial.print(" ");
-        if((i+1)%4==0) Serial.println();
-  }
-  Serial.println();
-
   
-/*
-   pos=go_to[pos];
-   Serial.print("Driving to ");
-   Serial.println(pos);
-   //if(pos==goal) pos=0;
+  
+  
+  
+  /*
+  void displayMapSpace(){
+    sparki.clearLCD();
+    int grid_width_pixel = 128/4
+    int grid_height_pixel = 64/4;
+    
+    for(int i=0; i<4; i++){
+      for (int j=0; j<4; j++){
+          if(grid[i][j]==1){
+              sparki.drawRectFilled(grid_width_pixel*4, grid_height_pixel*4, grid_width_pixel, grid_height_pixel);
+            }
+        }
+    }
+  }
   */
-}
-
-/* 
- *  
-*/
-
