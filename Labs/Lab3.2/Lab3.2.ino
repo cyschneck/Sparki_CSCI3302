@@ -1,3 +1,12 @@
+/*******************************************  
+  Lab 3.2:
+  Team: Spark-E
+  Cora Schneck
+  Kylee Bennett
+  Max Messenger Bouricius
+  Anthony Hauger
+  Douglas Allen
+********************************************/
 
 
 #include "stdio.h"
@@ -11,8 +20,13 @@
 //array and matrix initialization
 int distance[16]; //distance to get from start node to -a- node -> should be filled with 1's and INF'is
 int cost[4][4]; //distance to get from start node to end node -> should look something like (if going from 0 to 4) [0, 1, 2, 3][INF, INF, INF, INF]...
-short int grid = [0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0]; //graph of 0's and 1's -> 0==no obstacle, 1==obstacle --> made for test case currently
-short int flags[16];
+bool grid[4][4] = {
+ {0, 1, 1, 0},
+ {0, 0, 0, 0},
+ {1, 0, 1, 1},
+ {0, 0, 0, 0},
+}; //graph of 0's and 1's -> 0==no obstacle, 1==obstacle --> made for test case currently
+int flags[16];
 //initializing start and end nodes
 int start = 0;
 int goal = 15;
@@ -29,18 +43,53 @@ void setup(){
     dijkstra_algorithm(node, goal, distance);
 }
 
+/*
+ * 
+int check_adjacency(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+  //    "distance" is 7, but that's one down and three to right (4 spaces)
+   //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int neighbor = ((int)grid_distance/4)+(grid_distance%4);
+      if (grid[*point 2] == 1){
+        return infinity;
+      }
+      else if (neighbor > 1){ //not a neighbor
+        return infinity;
+      } else { //space is "empty" and the space is a neighbor
+        return 1;
+      }
+}
+
+//POSSIBLY UNNEEDED 19:37
+int space_distance(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+   //    "distance" is 7, but that's one down and three to right (4 spaces)
+   //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int num_spaces = ((int)grid_distance/4)+(grid_distance%4);
+    return num_spaces;
+}
+*/
+
 int check_adacency(int goal_node, int from_node){
-    if (from_ == goal){
+    if (from_node == goal){
 	return 0;
     }
 
-    int x_1 = from/4;
-    int x_2 = goal/4;
+    int x_1 = from_node/4;
+    int x_2 = goal_node/4;
     int y_1 = from_node%4;
     int y_2 = goal%4;
-    int neighbors = math.abs(x_2-x_1)+abs(y2-y1);   
+    int neighbors = abs(x_2-x_1)+abs(y_2-y_1);   
 
-    if (grid[current_node]==1 || grid[goal]==1){
+    if (grid[from_node] || grid[goal_node]){
 	return infinity;
     }
     else if (neighbors>1){
@@ -59,7 +108,7 @@ void dijkstra_algorithm(int num_node, int goal_node, int distance[])
     for(i=0;i<=node;i++) 
     {
         flag[i]=0;
-	distance[i]=cost(goal_node, i);
+ 	      //distance[i]=costToNode(goal_node, i);
     }
 
     count=2;
@@ -78,10 +127,11 @@ void dijkstra_algorithm(int num_node, int goal_node, int distance[])
         count++;
         for(w=0;w<=node;w++)
         {
-            if((distance[u]+cost[w]<distance[w]) && !flag[w]){
+            if((distance[u]+cost[u][w]<distance[w]) && !flag[w]){
                 distance[w]=distance[u]+cost[u][w];
         }
     }
+}
 }
 
 /********************************
@@ -121,6 +171,7 @@ int checkAdjacent(int i, int j) {
     return 0;
 }
 
+/*
 int main()
 {
     int node,v,i,j,cost[10][10],distance[10];
@@ -146,12 +197,12 @@ int main()
     node = start;
     //v = grid[];
   
-    dijkstra_algorithm(node,v,cost,distance);
+    dijkstra_algorithm(node,goal,distance);
     sparki.println("n Shortest path:n");
     
     for(i=0;i<=node;i++)
-        if(i!=v)
-    printf("%d->%d,cost=%dn",v,i,distance[i]);
+        if(i!=goal)
+    printf("%d->%d,cost=%dn",goal,i,distance[i]);
     
     //getch();
 }
@@ -361,37 +412,4 @@ cost(i, j) {
   Shortest path from 0 to 15 should be [0, 4, 5, 9, 13, 14, 15]
 */
 
-
-int check_adjacency(int point_1, int point_2){
-    //obtains an absolute value (0-15) of the distance between two nodes
-    //take that distance and divides by four+mods by four
-         //ex: from 0 to 7 
-	 //    "distance" is 7, but that's one down and three to right (4 spaces)
-	 //    (d/4)+(d%4)=1+3=4
-
-    int grid_distance = math.abs(point_1 - point2);
-    int neighbor = ((int)grid_distance/4)+(grid_distance%4);
-      if (grid[*point 2] == 1){
-        return infinity;
-      }
-      else if (neighbor > 1){ //not a neighbor
-        return infinity;
-      } else { //space is "empty" and the space is a neighbor
-        return 1;
-      }
-}
-
-//POSSIBLY UNNEEDED 19:37
-int space_distance(int point_1, int point_2){
-    //obtains an absolute value (0-15) of the distance between two nodes
-    //take that distance and divides by four+mods by four
-         //ex: from 0 to 7 
-	 //    "distance" is 7, but that's one down and three to right (4 spaces)
-	 //    (d/4)+(d%4)=1+3=4
-
-    int grid_distance = math.abs(point_1 - point2);
-    int num_spaces = ((int)grid_distance/4)+(grid_distance%4);
-    return num_spaces;
-}
-*/
 
