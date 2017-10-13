@@ -91,43 +91,78 @@ int start = 0;
 int goal = 15;
 int node = 15;
 
-void dijkstra_algorithm(int node, int v, int cost[4][4], int distance[])
-{
-    int i,u,count,w,flag[16],min;
-    for(i=0;i<=node;i++)
-    {
-      for(j=0;j<=4; j++){
-        flag[i]=0,distance[i]=check_adjacency(v, i);
+int check_adjacency(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+	 //    "distance" is 7, but that's one down and three to right (4 spaces)
+	 //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int neighbor = ((int)grid_distance/4)+(grid_distance%4);
+      if (grid[*point 2] == 1){
+        return infinity;
       }
+      else if (neighbor > 1){ //not a neighbor
+        return infinity;
+      } else { //space is "empty" and the space is a neighbor
+        return 1;
+      }
+}
+
+int space_distance(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+	 //    "distance" is 7, but that's one down and three to right (4 spaces)
+	 //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int num_spaces = ((int)grid_distance/4)+(grid_distance%4);
+    return num_spaces;
+}
+
+void dijkstra_algorithm(int num_node, int start_node, int cost[16], int distance[16])
+{
+    int i,u,count,w,flag[16],min; //flag is if node has been looked at.
+
+    //resets flag to all 0, returns distance with 1 (adjacent and no object) or 99 (not adjacent or no object)
+    for(i=0;i<=node;i++) 
+    {
+        flag[i]=0;
+	distance[i]=check_adjacency(start_node, i);
     }
+
     count=2;
+
+    //1.check if the space is a neighbor and has NOT been checked
+    //2.if true, then we keep track of that grid (0-15) number
+    //3.mark that node as checked
+    //4.increases count (still unsure why count starts at 2)
+    //5.generates a cost matrix from the nearest-unobstructed-unchecked neighbor to any node w
+    //6.if (distance[u]=)1+the cost to get from u to any node w<distance to node w AND w is unchecked, sets distance[w]=number of spaces to get to w from the start node.
+
     while(count<=node)
     {
         min=infinity;
         for(w=0;w<=node;w++)
         {
-            if(distance[w]<min && !flag[w])
-                min=distance[w],u=w;
+            if(distance[w]<min && !flag[w]){
+                min=distance[w];
+		u=w;
+		}
         }
         flag[u]=1;
         count++;
         for(w=0;w<=node;w++)
         {
-            if((distance[u]+cost[u][w]<distance[w]) && !flag[w])
+	    cost[u]=space_distance(u, w);
+            if((distance[u]+cost[w]<distance[w]) && !flag[w]){
                 distance[w]=distance[u]+cost[u][w];
         }
     }
 }
 
-// Here we're checking if the two points are adjacent, if so, we add the cost.
-int check_adjacency(int *point_1, int *point_2){
-    int grid_distance = math.abs(math.abs(xi - xj) + math.abs(yi - yj));
-      if (grid > 1){
-        return infinity;
-      } else {
-        return 1;
-      }
-}
 
 int checkAdjacent(int i, int j) {
   // Checks if node with index j is adjacent to i
