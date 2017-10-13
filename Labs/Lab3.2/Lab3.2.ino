@@ -2,150 +2,67 @@
 
 #include "stdio.h"
 #include <Sparki.h> // include sparki library
-//#include "conio.h"
+
+//definitions
 #define infinity 999
-
-/* Notes from Correll:
- for 4x4 graph:
- 12  3 4
- 
- x coord = i % 4
- y coord = i / 4
- cost from index i to index j:
-*/
-
-
-/* Pseudo:
- - we need:
-     - grid[16] filled with 0 (free) or 1 (obstacle) --> have an array obstacle, currently filled for the test case.
-    - index to [x, y] coordinates (int) function: i%4 = x, i/4 = y --> function1 = x,y to 0-15, function2 = 0-15 to x,y
-    - goto[16] array contains lowest cost route to go towards source
-      - value = which node to go to next (e.g. 2 = 'go to 2 next')
-        - e.g. for:
-          0   0   0   0
-          1   1   0   1
-          0   0   0   0
-          0   1   0g  1
-        - goto would look like: 
-          1   2   5   2
-          inf inf 10  inf
-          9   10  14  10  
-          8   inf 14  inf
-    - check for adjacents:
-      - up: i - 4 > 0
-      - down: i + 4 < 15
-      - left: i%4 != 0 (equivalent to i%4 > 0, in this case)
-      - right: i%4 != 3 (equivalent to i%4 < 3, in this case)
-    - if any of these are valid, 
-    - update costs to each of these, I think?
-    
-      
-      [0  01 02 03]
-      [04 05 06 07]
-      [08 09 10 11]
-      [12 13 14 15]
-*/
-
-/*
-cost(i, j) {
-    x1 = i % 4;
-    x2 = j % 4;
-    y1 = i / 4;
-    y2 = j / 4;
-    if (grid[x1][y1] || grid[x2][y2]) { return infinity; }
-    i -> x,y
-    else { return abs(x1-x2) + abs(y1-y2) }
-}
-*/
-
-// v = vertex (node2)
-// n = node
-// dist = distance
-// flag = whether that node has been visited already (i.e. frozen)
-
-/* From online Dijkstra to our code:
-  - graph reference name?
-  - update min=99 to use #defined infinity (999)? (DONE)
-  - 
-*/
-
-/* Test graph with obstacles (o):
-  0   1o  2o  3
-  4   5   6   7
-  8o  9   10o 11o
-  12  13  14  15
-  
-  Shortest path from 0 to 15 should be [0, 4, 5, 9, 13, 14, 15]
-*/
-
-//defining grid constants
 #define GRID_WIDTH  15.25
 #define GRID_HEIGHT 11.75
+
 //array and matrix initialization
-int distance[16]; //distance to get from start node to -a- node -> should be filled with 1's and INF's
+int distance[16]; //distance to get from start node to -a- node -> should be filled with 1's and INF'is
 int cost[4][4]; //distance to get from start node to end node -> should look something like (if going from 0 to 4) [0, 1, 2, 3][INF, INF, INF, INF]...
 short int grid = [0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0]; //graph of 0's and 1's -> 0==no obstacle, 1==obstacle --> made for test case currently
 short int flags[16];
 //initializing start and end nodes
 int start = 0;
 int goal = 15;
-int node = 15;
+int node = 16;
 
 /**************************************
-************START 10/2 AH**************
+************START 10/12 **************
 **************************************/
 
-int check_adjacency(int point_1, int point_2){
-    //obtains an absolute value (0-15) of the distance between two nodes
-    //take that distance and divides by four+mods by four
-         //ex: from 0 to 7 
-	 //    "distance" is 7, but that's one down and three to right (4 spaces)
-	 //    (d/4)+(d%4)=1+3=4
-
-    int grid_distance = math.abs(point_1 - point2);
-    int neighbor = ((int)grid_distance/4)+(grid_distance%4);
-      if (grid[*point 2] == 1){
-        return infinity;
-      }
-      else if (neighbor > 1){ //not a neighbor
-        return infinity;
-      } else { //space is "empty" and the space is a neighbor
-        return 1;
-      }
+void setup(){
+    for(int i=0; i<node; i++){
+	distance[i]=infinity;
+    }
+    dijkstra_algorithm(node, goal, distance);
 }
 
-//POSSIBLY UNNEEDED 19:37
-int space_distance(int point_1, int point_2){
-    //obtains an absolute value (0-15) of the distance between two nodes
-    //take that distance and divides by four+mods by four
-         //ex: from 0 to 7 
-	 //    "distance" is 7, but that's one down and three to right (4 spaces)
-	 //    (d/4)+(d%4)=1+3=4
+int check_adacency(int goal_node, int from_node){
+    if (from_ == goal){
+	return 0;
+    }
 
-    int grid_distance = math.abs(point_1 - point2);
-    int num_spaces = ((int)grid_distance/4)+(grid_distance%4);
-    return num_spaces;
+    int x_1 = from/4;
+    int x_2 = goal/4;
+    int y_1 = from_node%4;
+    int y_2 = goal%4;
+    int neighbors = math.abs(x_2-x_1)+abs(y2-y1);   
+
+    if (grid[current_node]==1 || grid[goal]==1){
+	return infinity;
+    }
+    else if (neighbors>1){
+	return infinity;
+    }
+    else {
+	return 1;
+    }
 }
 
-void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distance[16])
+void dijkstra_algorithm(int num_node, int goal_node, int distance[])
 {
-    int i,u,x,y,z,count,w,flag[16],min; //flag is if node has been looked at.
+    int i,u,count,w,flag[16],min; //flag is if node has been looked at.
 
     //resets flag to all 0, returns distance with 1 (adjacent and no object) or 99 (not adjacent or no object)
     for(i=0;i<=node;i++) 
     {
         flag[i]=0;
-	distance[i]=check_adjacency(start_node, i);
+	distance[i]=cost(goal_node, i);
     }
 
     count=2;
-
-    //1.check if the space is a neighbor and has NOT been checked
-    //2.if true, then we keep track of that grid (0-15) number
-    //3.mark that node as checked
-    //4.increases count -- count = 2 as we've "checked" the space we're on and we've checked a neighbor
-    //5.generates a cost matrix from the nearest-unobstructed-unchecked neighbor to any node w
-    //6.if (distance[u]=)1+the cost to get from u to any node w<distance to node w AND w is unchecked, sets distance[w]=number of spaces to get to w from the start node.
 
     while(count<=node)
     {
@@ -154,8 +71,6 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distan
         {
             if(distance[w]<min && !flag[w]){
                 min=distance[w];
-		x= (int) w/4;
-		y= w%4; //x,y are the 4x4 coordinates of w
 		u=w;
 		}
         }
@@ -163,19 +78,9 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distan
         count++;
         for(w=0;w<=node;w++)
         {
-	    z=space_distance(u, w);
             if((distance[u]+cost[w]<distance[w]) && !flag[w]){
                 distance[w]=distance[u]+cost[u][w];
         }
-    }
-    if (___==goal){
-	return True;
-    }
-    else{
-	//call Dijkstra's again
-
-	if (something == True){
-	    //Append node to the path array here
     }
 }
 
@@ -376,6 +281,117 @@ void loop() {
       theta = fmod(theta, 360); // fmod (floating point module) 360 to keep theta between 0-360
     }
   }
+}
+*/
+
+
+
+/*********BEGIN POSSIBLY UNNECCESARY CODE****************/
+/*
+/* Notes from Correll:
+ for 4x4 graph:
+ 12  3 4
+ 
+ x coord = i % 4
+ y coord = i / 4
+ cost from index i to index j:
+*/
+
+
+/* Pseudo:
+ - we need:
+     - grid[16] filled with 0 (free) or 1 (obstacle) --> have an array obstacle, currently filled for the test case.
+    - index to [x, y] coordinates (int) function: i%4 = x, i/4 = y --> function1 = x,y to 0-15, function2 = 0-15 to x,y
+    - goto[16] array contains lowest cost route to go towards source
+      - value = which node to go to next (e.g. 2 = 'go to 2 next')
+        - e.g. for:
+          0   0   0   0
+          1   1   0   1
+          0   0   0   0
+          0   1   0g  1
+        - goto would look like: 
+          1   2   5   2
+          inf inf 10  inf
+          9   10  14  10  
+          8   inf 14  inf
+    - check for adjacents:
+      - up: i - 4 > 0
+      - down: i + 4 < 15
+      - left: i%4 != 0 (equivalent to i%4 > 0, in this case)
+      - right: i%4 != 3 (equivalent to i%4 < 3, in this case)
+    - if any of these are valid, 
+    - update costs to each of these, I think?
+    
+      
+      [0  01 02 03]
+      [04 05 06 07]
+      [08 09 10 11]
+      [12 13 14 15]
+*/
+
+/*
+cost(i, j) {
+    x1 = i % 4;
+    x2 = j % 4;
+    y1 = i / 4;
+    y2 = j / 4;
+    if (grid[x1][y1] || grid[x2][y2]) { return infinity; }
+    i -> x,y
+    else { return abs(x1-x2) + abs(y1-y2) }
+}
+*/
+
+// v = vertex (node2)
+// n = node
+// dist = distance
+// flag = whether that node has been visited already (i.e. frozen)
+
+/* From online Dijkstra to our code:
+  - graph reference name?
+  - update min=99 to use #defined infinity (999)? (DONE)
+  - 
+*/
+
+/* Test graph with obstacles (o):
+  0   1o  2o  3
+  4   5   6   7
+  8o  9   10o 11o
+  12  13  14  15
+  
+  Shortest path from 0 to 15 should be [0, 4, 5, 9, 13, 14, 15]
+*/
+
+
+int check_adjacency(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+	 //    "distance" is 7, but that's one down and three to right (4 spaces)
+	 //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int neighbor = ((int)grid_distance/4)+(grid_distance%4);
+      if (grid[*point 2] == 1){
+        return infinity;
+      }
+      else if (neighbor > 1){ //not a neighbor
+        return infinity;
+      } else { //space is "empty" and the space is a neighbor
+        return 1;
+      }
+}
+
+//POSSIBLY UNNEEDED 19:37
+int space_distance(int point_1, int point_2){
+    //obtains an absolute value (0-15) of the distance between two nodes
+    //take that distance and divides by four+mods by four
+         //ex: from 0 to 7 
+	 //    "distance" is 7, but that's one down and three to right (4 spaces)
+	 //    (d/4)+(d%4)=1+3=4
+
+    int grid_distance = math.abs(point_1 - point2);
+    int num_spaces = ((int)grid_distance/4)+(grid_distance%4);
+    return num_spaces;
 }
 */
 
