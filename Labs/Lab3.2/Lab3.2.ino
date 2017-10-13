@@ -91,6 +91,10 @@ int start = 0;
 int goal = 15;
 int node = 15;
 
+/**************************************
+************START 10/2 AH**************
+**************************************/
+
 int check_adjacency(int point_1, int point_2){
     //obtains an absolute value (0-15) of the distance between two nodes
     //take that distance and divides by four+mods by four
@@ -122,7 +126,7 @@ int space_distance(int point_1, int point_2){
     return num_spaces;
 }
 
-void dijkstra_algorithm(int num_node, int start_node, int cost[16], int distance[16])
+void dijkstra_algorithm(int num_node, int start_node, int cost[4][4], int distance[16])
 {
     int i,u,count,w,flag[16],min; //flag is if node has been looked at.
 
@@ -138,7 +142,7 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[16], int distance
     //1.check if the space is a neighbor and has NOT been checked
     //2.if true, then we keep track of that grid (0-15) number
     //3.mark that node as checked
-    //4.increases count (still unsure why count starts at 2)
+    //4.increases count -- count = 2 as we've "checked" the space we're on and we've checked a neighbor
     //5.generates a cost matrix from the nearest-unobstructed-unchecked neighbor to any node w
     //6.if (distance[u]=)1+the cost to get from u to any node w<distance to node w AND w is unchecked, sets distance[w]=number of spaces to get to w from the start node.
 
@@ -163,6 +167,9 @@ void dijkstra_algorithm(int num_node, int start_node, int cost[16], int distance
     }
 }
 
+/********************************
+************END 10/12************
+********************************/
 
 int checkAdjacent(int i, int j) {
   // Checks if node with index j is adjacent to i
