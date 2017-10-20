@@ -26,7 +26,7 @@
       float arrayToWorldX(int arrayIndex) {
         // Input: grid index on array (int)
         // Output: x world coordinate (float)
-    int x = arrayIndex/4;
+	int x = arrayIndex/4;
         float xWorld = (x*GRID_WIDTH) + (.5*GRID_WIDTH);
         return(xWorld);
         
