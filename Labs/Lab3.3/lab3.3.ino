@@ -20,13 +20,21 @@
 ***************************************************************/
 
 /*Lab 3.3
+ * Team: Spark-E
+Cora Schneck
+Kylee Bennett
+Anthony Hauger
+Max Messenger Bouricius
+Anthony Hauger
+Douglas Allen
+
    1. Write code that calculates an X-Y coordinate in the real world based on the 
    I-J coordinates of your 2D map. This coordinate should be the center of each grid cell.
    
       float arrayToWorldX(int arrayIndex) {
         // Input: grid index on array (int)
         // Output: x world coordinate (float)
-    int x = arrayIndex/4;
+  int x = arrayIndex/4;
         float xWorld = (x*GRID_WIDTH) + (.5*GRID_WIDTH);
         return(xWorld);
         
