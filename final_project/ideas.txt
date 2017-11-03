@@ -1,1 +1,15 @@
-murder-bot
+Murder-Bot:
+	- Sparki will follow light source, singing horror song as it pursues its victim
+		- Song ideas:
+			- Halloween theme
+			- Jaws
+			- 
+
+
+- Song functionality:
+	- class Song:
+		notesArray = [13]: 12 semitones + rest/silence
+		octaveArray = [6?]: whatever useful octaves for songs (e.g. lower for Jaws, higher for Halloween theme)
+		durationArray = [16th, 8th, quarter, half, whole]
+		tempo: float for bpm
+
