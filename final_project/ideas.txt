@@ -3,8 +3,6 @@ Murder-Bot:
 		- Song ideas:
 			- Halloween theme
 			- Jaws
-			- 
-
 
 - Song functionality:
 	- class Song:
@@ -12,5 +10,19 @@ Murder-Bot:
 		octaveArray = [6?]: whatever useful octaves for songs (e.g. lower for Jaws, higher for Halloween theme)
 		durationArray = [16th, 8th, quarter, half, whole]
 		tempo: float for bpm
+	- main algorithm:
+		- state machine updates every 100ms
+		- every time, check if new note should be played
+			- (duration*120) / tempo = true duration
+			- default tempo: 120bpm?
+			- at 120bpm:
+				- whole = 2000ms
+				- half = 1000ms
+				- quarter = 500ms
+				- eighth = 250ms
+				- sixteenth = 125ms
+		- 
+
+
 
 Plant-Watering-Bot
