@@ -13,3 +13,4 @@ Murder-Bot:
 		durationArray = [16th, 8th, quarter, half, whole]
 		tempo: float for bpm
 
+Plant-Watering-Bot
