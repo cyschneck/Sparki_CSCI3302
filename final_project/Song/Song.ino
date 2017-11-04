@@ -1,3 +1,11 @@
+/* CURRENT STATUS:
+ *  Right now if Sparki is plugged in, he can sing either the Halloween Theme or Jaws (slow or fast).
+ *  Next goal is to get him to sing it without being plugged in, although I don't know if he has enough on-board memory to handle all the calculations/notes/durations.
+ *  Also, I'll make sure I clean up all my garbage/test code!
+ */
+
+
+
 #include <Sparki.h>
 float freq[] = {0.0, 32.703, 34.648, 36.708, 38.891, 41.203, 43.654, 46.249, 48.999, 51.913, 55.0, 58.270, 61.735};
 float  octave[] = {2, 4, 8, 16, 32, 64, 128};
@@ -101,8 +109,8 @@ void loop() {
     if ((HalloweenNotes[i] < 1)) {
       sparki.noBeep();
     } else {
-      sparki.noBeep();
-      //sparki.beep(HalloweenNotes[i]);  
+      //sparki.noBeep();
+      sparki.beep(HalloweenNotes[i]);  
     }
     
     //sparki.noBeep();
