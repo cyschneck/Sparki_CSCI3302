@@ -1,3 +1,5 @@
+#include <Sparki.h>
+
 void draw_knife(){
   sparki.clearLCD();
   //spine
@@ -11,10 +13,13 @@ void draw_knife(){
   //hilt
   sparki.drawLine(79, 7, 81, 9);
   sparki.drawLine(81, 9, 75, 14);
+
+  sparki.updateLCD();
 }
 
 void setup() {
   // put your setup code here, to run once:
+  draw_knife();
 
 }
 
