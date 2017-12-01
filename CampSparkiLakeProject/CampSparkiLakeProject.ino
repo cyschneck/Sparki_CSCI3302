@@ -22,6 +22,31 @@ void setup() {
 
 }
 
+void stateOne(){
+  /* -- Sparki will move back and forth searching for a light
+  When a light is detected, it will rotate closer to that light
+  Once the light is found in the dead middle, it will triangulate the lights position
+  We wont know exactly where the light is so we'll have to guess -- */
+
+  int left = spark.lightLeft(); // measure the left light
+  int center = sparki.lightCenter(); // measure the center light
+  int right = sparki.lightRight(); // measure the right light
+
+  if ((center > left) && (center > right)){
+    sparki.beep(); // found the light
+  }
+
+  if ((left> center) && (left > right)){
+    sparki.moveLeft();
+  }
+
+  if ((right > center) && (right > left)){
+    sparki.moveRight();
+  }
+
+  delay(100); // wait 0.1 seconds
+}
+
 void loop() {
   // put your main code here, to run repeatedly:
   /*
