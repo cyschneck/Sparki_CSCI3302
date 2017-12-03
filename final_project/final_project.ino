@@ -81,12 +81,26 @@ void readSensors()
   }
 }
 
+void rotateStationary()
+{
+  readSensors(); // continually grab new sensor data for left/center/right sensors
+  displaySensorsAndStates(); // display sensor on display
+    
+  if (light_state == NO_LIGHT){
+    sparki.moveLeft(100);
+    sparki.moveRight(100);
+  }
+}
+
 void findLight() {
   state = "find light";
   if (program_state == FIND_LIGHT) // while program hasn't found light
   {
     readSensors();
     displaySensorsAndStates();
+
+    // turn in position
+    rotateStationary();
   }
 }
 
