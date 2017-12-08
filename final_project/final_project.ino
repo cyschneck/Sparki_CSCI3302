@@ -301,6 +301,12 @@ void programStates()
   }
 }
 
+// function for returning to home base. Sparki will simply dijkstras back to our start node
+// and then traverse
+void returnHome() {
+  dijkstra(numNodes, startPosition, distanceToNode);
+}
+
 void loop() {
   // put your main code here, to run repeatedly: follows the line and only changes behavior is it sees an object
   if (program_state != END_GAME) // while the program isn't done
