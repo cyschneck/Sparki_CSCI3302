@@ -67,9 +67,9 @@ int ping = 0;
 /* START DIJKSTRA SETUP */
 int numRows=5;
 int numColumns=5;
-
-int distanceToNode[numRows*numColumns];
-int go_to[numRows*numColumns];
+int numNodes=25;
+int distanceToNode[25];
+int go_to[25];
 
 bool map_space[5][5]={ //1's are obstacles!
   {0, 0, 0, 0, 0},
@@ -79,9 +79,9 @@ bool map_space[5][5]={ //1's are obstacles!
   {0, 0, 1, 0, 0}
 };
 
-byte startPosition=1;
-byte currentPosition=1;
-byte goalPosition=24;
+int startPosition=1;
+int currentPosition=1;
+int goalPosition=24;
 /* END DIJKSTRA SETUP */
 
 String state = "undefined"; // print program state on display
@@ -118,7 +118,7 @@ void dijkstra(int n, int v, int distance[]){ //n=number of nodes, v=goal node
     flag[i]=0;
     distance[i]=cost(v, i);
   }
-  distance[goal]=0; //copied from Correll's file, maybe gives better sense for sparki to want to go there?
+  distance[v]=0; //copied from Correll's file, maybe gives better sense for sparki to want to go there?
   count=1;
   while(count<=n){
     minimum=infinity;
@@ -137,6 +137,14 @@ void dijkstra(int n, int v, int distance[]){ //n=number of nodes, v=goal node
       }
     }
   }
+
+  /* PRINT TO MAKE SURE IT DOES THE GOAL NODE PATH CORRECTLY */
+  sparki.clearLCD();
+  sparki.println("path to goal:");
+  for(w=0;w<n;w++){
+    sparki.print(go_to[w]);
+  }
+  sparki.updateLCD();
 }
 
 byte positionToNode(byte positionRow, byte positionColumn){
@@ -180,6 +188,7 @@ void displaySensorsAndStates()
   sparki.updateLCD(); //display all information written to screen
 }
 
+/* SECOND STATE FUNCTION */
 void setGoal(){ //branches are not in numerical order, but in direction order
   if(light_state==1){ //directly to Sparki's left
     goalPosition=2;
@@ -195,14 +204,17 @@ void setGoal(){ //branches are not in numerical order, but in direction order
     return;
   } else { //either 000 or 111
     program_state=FIND_LIGHT;
+    return;
   }
 
-  dijkstra((numRows*numColumns), goalPosition, distanceToNode);
+  dijkstra(numNodes, goalPosition, distanceToNode);
   displaySensorsAndStates();
 
   program_state=FOLLOW_LIGHT;
 }
+/* END SECOND STATE FUNCTION */
 
+/* BEGIN FIRST STATE FUNCITONS */
 void readSensors()
 {
   // sensor is 1 if sees light and 0 if does not see light 
@@ -260,7 +272,9 @@ void lightStates()
     default: break; // keeps doing previous action
   }
 }
+/* END FIRST STATE FUNCTIONS */
 
+/* BEGIN LOOP FUNCTIONS */
 void programStates()
 {
 /*
@@ -297,3 +311,5 @@ void loop() {
     delay(10); // loops .01 a second (pings rate)
   }
 }
+
+/* END LOOP FUNCTIONS */
