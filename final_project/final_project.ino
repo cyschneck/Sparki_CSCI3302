@@ -79,8 +79,8 @@ bool map_space[5][5]={ //1's are obstacles!
   {0, 0, 1, 0, 0}
 };
 
-byte startPosition[2]={0, 1};
-byte currentPosition[2]={startPosition[0], startPosition[1]};
+byte startPosition=1;
+byte currentPosition=1;
 byte goalPosition=24;
 /* END DIJKSTRA SETUP */
 
