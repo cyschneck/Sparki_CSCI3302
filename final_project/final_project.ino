@@ -33,7 +33,7 @@ Douglas Allen
 #define RETURN_HOME 5 // grabbed victim, returning home
 #define END_GAME 6 // all victims have been captured, or lost, end of all movement
 
-#define infinity 999
+#define infinity 99
 /*Dijkstras Variables*/
 int start_node=1;
 int current_node=1;
@@ -74,6 +74,7 @@ void setup() {
 /*******************************************
 TAKES READINGS FROM SENSORS TO DISPLAY
 ********************************************/
+
 void displaySensorsAndStates()
 {
   sparki.clearLCD(); // wipe screen clean each run  
@@ -83,22 +84,13 @@ void displaySensorsAndStates()
   } else if(program_state==FOUND_LIGHT){
     sparki.print("Goal node:");
     sparki.println(goal_node);
-  } else if(program_state==FOLLOW_LIGHT){
-    for(int i=0;i<16;i++){
-         if(distanceToNode[i]!=infinity) 
-          Serial.print(go_to[i]);
-         else
-          Serial.print("#");
-        Serial.print(" ");
-        if((i+1)%4==0) Serial.println();
-    }
-  Serial.println();
   }
   sparki.println(String("state = ") + program_state); // displays state of movement (follow line, approaching, etc...)
   sparki.println("state = " + state); // displays state of movement (follow line, approaching, etc...)
   
   sparki.updateLCD(); //display all information written to screen
 }
+
 
 void readSensors()
 {
@@ -159,32 +151,54 @@ void lightStates()
 }
 
 void setGoal(){
-  if(light_state==1){
+  sparki.clearLCD();
+  if(light_state==100){
     goal_node=2;
-    displaySensorsAndStates();
     program_state=FOLLOW_LIGHT;
-  } else if(light_state==11){
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 2
+    sparki.println("state = " + state);
+  } else if(light_state==110){
     goal_node=11;
-    displaySensorsAndStates();
     program_state=FOLLOW_LIGHT;
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 2
+    sparki.println("state = " + state);
   } else if(light_state==10){
     goal_node=12;
-    displaySensorsAndStates();
     program_state=FOLLOW_LIGHT;
-  } else if(light_state==110){
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 2
+    sparki.println("state = " + state);
+  } else if(light_state==11){
     goal_node=4;
-    displaySensorsAndStates();
     program_state=FOLLOW_LIGHT;
-  } else if(light_state==100){
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 2
+    sparki.println("state = " + state);
+  } else if(light_state==1){
     sparki.moveRight(100);
     program_state=LOCAL_SEARCH;
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 3
+    sparki.println("state = " + state);
   } else {
     program_state=FIND_LIGHT;
+    sparki.print("Goal node:");
+    sparki.println(goal_node);
+    sparki.println(String("state = ") + program_state); //should be 1
+    sparki.println("state = " + state);
   }
+  sparki.updateLCD();
 }
 
 
-int cost(int i, int j){
+int cost(int i, int j){ //i=from node, j=to node
   int x1= i/4;
   int y1= i%4;
   int x2= j/4;
@@ -209,15 +223,17 @@ void dij(int n, int v, int dist[]){
 
   for(i=0;i<=n;i++){
     flag[i]=0;
-    dist[i]=99;
+    dist[i]=infinity;
   }
-  dist[start_node]=0;
+  dist[goal_node]=0;
   count=1;
   while(count<=n){
     minimum=infinity;
     for(w=0;w<=n;w++){
-      minimum=dist[w];
-      u=w;
+      if(dist[w]<minimum && !flag[w]){
+        minimum=dist[w];
+        u=w; 
+      }
     }
     flag[u]=1;
     count++;
@@ -231,8 +247,28 @@ void dij(int n, int v, int dist[]){
 }
 
 void call_dijkstras(){
-  dij(numNodes, goal_node, distanceToNode);
-  displaySensorsAndStates();
+  sparki.clearLCD();
+  sparki.println(String("entering dij"));
+  sparki.updateLCD();
+  
+  dij(15, goal_node, distanceToNode);
+  //displaySensorsAndStates();
+  
+  sparki.clearLCD();
+  for(int i=0;i<16;i++){
+    sparki.print(" ");
+         if(distanceToNode[i]!=infinity) 
+          sparki.print(go_to[i]);
+         //else
+          //sparki.print("#");
+        sparki.print(" ");
+        if((i+1)%4==0) sparki.println();
+    }
+  sparki.println();
+  sparki.updateLCD();
+  program_state=LOCAL_SEARCH;
+  
+  delay(500);
 }
 void programStates()
 {
@@ -264,9 +300,8 @@ void loop() {
   // put your main code here, to run repeatedly: follows the line and only changes behavior is it sees an object
   if (program_state != END_GAME) // while the program isn't done
   {
-    readSensors();
     programStates();
-    displaySensorsAndStates();
+    //displaySensorsAndStates();
     delay(10); // loops .01 a second (pings rate)
   }
 }
