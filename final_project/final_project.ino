@@ -61,8 +61,10 @@ bool found_light = false;
 int program_state = FIND_LIGHT;
 /* END INITIALIZE LIGHT VARS */
 
+/*FIND OBJECT*/
 int ping = 0;
-
+bool foundObject = false;
+/*END INTIALIZE FIND OBJECT VARS*/
 
 /* START DIJKSTRA SETUP */
 int numRows=5;
@@ -168,7 +170,9 @@ TAKES READINGS FROM SENSORS TO DISPLAY
 void displaySensorsAndStates()
 {
   sparki.clearLCD(); // wipe screen clean each run  
-
+  sparki.print("Ping: "); // ultrasonic ping ranger on screen
+  sparki.print(ping);
+  sparki.println(" cm");
   sparki.print("Left=");
   sparki.println(left);
   sparki.print("Center=");
@@ -228,6 +232,7 @@ void readSensors()
   {
     state = "light found";
     program_state = FOUND_LIGHT;
+    //program_state = LOCAL_SEARCH;
   }
 }
 
@@ -293,18 +298,56 @@ void programStates()
     case FIND_LIGHT: findLight(); break;
     case FOUND_LIGHT: setGoal; break;
     case FOLLOW_LIGHT: break;
-    // case LOCAL_SEARCH: break;
-    // case FOUND_VICTIM: break;
-    // case RETURN_HOME: break;
+    case LOCAL_SEARCH: localSearchandGrab(); break;
+    case RETURN_HOME: break;
     // case END_GAME: break;
     default: break;
   }
+}
+
+void localSearchandGrab() {
+  ping = sparki.ping();
+  if (ping == -1) // too far or too close
+  {
+    ping = 100;
+  }
+  readSensors(); // continually grab new sensor data for left/center/right sensors
+  displaySensorsAndStates(); // display sensor on display
+
+  if (ping > 8){
+    // rotate in a circle until victim is found
+    sparki.moveLeft(360);
+  }
+  else
+  {
+     while (ping > 3) {
+           sparki.moveForward();
+     }
+     // grab object by closing grippers
+     sparki.moveStop();
+     sparki.gripperClose();
+     delay(2000); // time to grip (2 seconds)
+     sparki.gripperStop();
+     program_state = RETURN_HOME;
+  }
+}
+
+
+void releaseObject()
+{
+  sparki.moveStop();
+  state = "releasing object";
+  sparki.gripperOpen();
+  delay(2000);
+  sparki.gripperStop();
 }
 
 // function for returning to home base. Sparki will simply dijkstras back to our start node
 // and then traverse
 void returnHome() {
   dijkstra(numNodes, startPosition, distanceToNode);
+  // once at home: release object
+  releaseObject();
 }
 
 void loop() {
