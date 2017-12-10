@@ -238,7 +238,7 @@ void dij(int n, int v, int dist[]){
     flag[u]=1;
     count++;
     for(w=0;w<=n;w++){
-      if((dist[u]+cost(u,w)<dist[w])&& !flag[w]){
+      if((dist[u]+cost(u,w)<dist[w]) && !flag[w]){
         dist[w]=dist[u]+cost(u,w);
         go_to[w]=u;
       }
@@ -247,27 +247,24 @@ void dij(int n, int v, int dist[]){
 }
 
 void call_dijkstras(){
-  sparki.clearLCD();
-  sparki.println(String("entering dij"));
-  sparki.updateLCD();
-  
   dij(15, goal_node, distanceToNode);
   //displaySensorsAndStates();
-  
+  go_to[goal_node]=17; //this makes sure we don't just drive off into the sunset and so the user isn't confused
+
   sparki.clearLCD();
   for(int i=0;i<16;i++){
     sparki.print(" ");
          if(distanceToNode[i]!=infinity) 
           sparki.print(go_to[i]);
-         //else
-          //sparki.print("#");
+         else
+          sparki.print("#");
         sparki.print(" ");
         if((i+1)%4==0) sparki.println();
     }
   sparki.println();
   sparki.updateLCD();
   program_state=LOCAL_SEARCH;
-  
+
   delay(500);
 }
 void programStates()
