@@ -14,7 +14,7 @@ Douglas Allen
 ********************************************/
 #include <Sparki.h> // include sparki library
 
-// Define states for following light (sensor states)
+// Define states for following lighLt (sensor states)
 // 1 (SEES LIGHT), 0 (DOES NOT SEE LIGHT)
 #define ALL_LIGHT 111
 #define NO_LIGHT 0 ///000
@@ -59,6 +59,7 @@ bool found_light = false;
 int program_state = FIND_LIGHT;
 
 int ping = 0;
+bool foundObject = false;
 
 String state = "undefined"; // print program state on display
 
@@ -77,7 +78,11 @@ TAKES READINGS FROM SENSORS TO DISPLAY
 
 void displaySensorsAndStates()
 {
-  sparki.clearLCD(); // wipe screen clean each run  
+  sparki.clearLCD(); // wipe screen clean each run 
+  /*sparki.print("PING: "); 
+   * sparki.print(ping);
+   * sparki.println(" cm");
+   */
   if(program_state==FIND_LIGHT){
     sparki.print("Light state: ");
     sparki.println(light_state);
@@ -285,12 +290,48 @@ void programStates()
     case FIND_LIGHT: findLight(); break;
     case FOUND_LIGHT: setGoal(); break;
     case FOLLOW_LIGHT: call_dijkstras(); break;
-    case LOCAL_SEARCH: break;
-    // case FOUND_VICTIM: break;
+    case LOCAL_SEARCH: localSearchandGrab(); break;
     // case RETURN_HOME: break;
     // case END_GAME: break;
     default: break;
   }
+}
+
+
+void localSearchandGrab() {
+  ping = sparki.ping();
+  if (ping == -1) // too far or too close
+  {
+    ping = 100;
+  }
+  readSensors(); // continually grab new sensor data for left/center/right sensors
+  displaySensorsAndStates(); // display sensor on display
+
+  if (ping > 8){
+    // rotate in a circle until victim is found
+    sparki.moveLeft(360);
+  }
+  else
+  {
+     while (ping > 3) {
+           sparki.moveForward();
+     }
+     // grab object by closing grippers
+     sparki.moveStop();
+     sparki.gripperClose();
+     delay(2000); // time to grip (2 seconds)
+     sparki.gripperStop();
+     program_state = RETURN_HOME;
+  }
+}
+
+void releaseObject()
+{
+  sparki.moveStop();
+  state = "releasing object";
+  sparki.gripperOpen();
+  delay(2000);
+  sparki.gripperStop();
 }
 
 void loop() {
