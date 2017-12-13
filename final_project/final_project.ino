@@ -26,55 +26,52 @@ Douglas Allen
 
 // Define states for what action the robot is taking (program states)
 #define FIND_LIGHT 0 // attempting to find victims
-#define FOUND_LIGHT 1 // found light, implements best path algorithm
-#define FOLLOW_LIGHT 2 // following best path to light source
-#define LOCAL_SEARCH 3 // gets to approx. locationa and searches for victim with ping
-#define FOUND_VICTIM 4 // found objects, appraoching to grab
-#define RETURN_HOME 5 // grabbed victim, returning home
-#define END_GAME 6 // all victims have been captured, or lost, end of all movement
+#define SET_GOAL 1 // found light, implements best path algorithm
+#define CALL_DIJKSTRA 2 // following best path to light source
+#define RETURN_HOME 3 // grabbed victim, returning home
+#define END_GAME 4 // all victims have been captured, or lost, end of all movement
 
-#define infinity 99
-/*Dijkstras Variables*/
-int start_node=1;
-int current_node=1;
-int goal_node=0;
-
-int numNodes=16;
-int distanceToNode[16];
-int go_to[16];
-
-int grid[4][4]={
-  {0,0,0,0},
-  {0,1,1,0},
-  {0,1,0,0},
-  {0,0,0,1}
-};
-/*End Dijkstra Variables*/
-
-const int threshold = 500; // light sensor threshold
+const int threshold = 800; // light sensor threshold
 bool lightLeft, lightCenter, lightRight = false; // light senesors see light above threshold
 
 int light_state = NO_LIGHT;
 bool found_light = false;
 int program_state = FIND_LIGHT;
-
 int ping = 0;
-bool foundObject = false;
-
 String state = "undefined"; // print program state on display
 
+
 void setup() {
-  for(int i=0;i<numNodes;i++){
-    distanceToNode[i]=infinity;
-  }
-  sparki.servo (SERVO_CENTER);
+  //for(int i=0;i<numNodes;i++){
+  //  distanceToNode[i]=infinity;
+  //}
+  sparki.servo(SERVO_CENTER);
   sparki.clearLCD();
   delay(300);
 }
 
-/*******************************************
-TAKES READINGS FROM SENSORS TO DISPLAY
-********************************************/
+void programStates()
+{
+/*
+// Define states for what action the robot is taking (program states)
+#define FIND_LIGHT 0 // attempting to find victims
+#define SET_GOAL 1 // found light, implements best path algorithm
+#define CALL_DIJKSTRA 2 // following best path to light source
+#define RETURN_HOME 3 // grabbed victim, returning home
+#define END_GAME 4
+*/
+
+  switch(program_state)
+  {
+    case FIND_LIGHT: findLight(); break;
+    case SET_GOAL: setGoal(); break;
+    case CALL_DIJKSTRA: call_dijkstras(); break;
+    case RETURN_HOME: returnHome(); break;
+    case END_GAME: break;
+    default: break;
+  }
+}
+
 
 void displaySensorsAndStates()
 {
@@ -86,16 +83,18 @@ void displaySensorsAndStates()
   if(program_state==FIND_LIGHT){
     sparki.print("Light state: ");
     sparki.println(light_state);
-  } else if(program_state==FOUND_LIGHT){
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
+  } else if(program_state==SET_GOAL ){
+    //sparki.print("Goal node:");
+    //sparki.println(goal_node);
   }
   sparki.println(String("state = ") + program_state); // displays state of movement (follow line, approaching, etc...)
   sparki.println("state = " + state); // displays state of movement (follow line, approaching, etc...)
-  
+      
+  sparki.print("PING: "); 
+  sparki.print(ping);
+  sparki.println(" cm");
   sparki.updateLCD(); //display all information written to screen
 }
-
 
 void readSensors()
 {
@@ -108,21 +107,10 @@ void readSensors()
 
   if (light_state) 
   {
-    state = "light found";
-    program_state = FOUND_LIGHT;
+    program_state = SET_GOAL;
   }
 }
 
-void rotateStationary()
-{
-  readSensors(); // continually grab new sensor data for left/center/right sensors
-  displaySensorsAndStates(); // display sensor on display
-
-  if (light_state == NO_LIGHT){
-    sparki.moveLeft(100);
-    sparki.moveRight(100);
-  }
-}
 
 void findLight() {
   state = "find light";
@@ -132,212 +120,78 @@ void findLight() {
     displaySensorsAndStates();
 
     // turn in position, stops when it finds light
-    rotateStationary();
-  }
-}
-
-void lightStates()
-{
-  readSensors(); // continually grab new sensor data for left/center/right sensors
-  displaySensorsAndStates(); // display sensor on display
-
-  switch(light_state) 
-  {
-    //case HARD_LEFT: moveLeft(); break;
-    case ONLY_RIGHT: break;
-    case RIGHT_CENTER: break;
-    case ONLY_LEFT: break;
-    case LEFT_CENTER: break;
-    case ONLY_CENTER: break;
-    case ALL_LIGHT: break;
-    case NO_LIGHT: break; // keeps doing previous action
-    default: break; // keeps doing previous action
+  if (light_state == NO_LIGHT){
+    sparki.moveLeft(100);
+    sparki.moveRight(100);
+   }
   }
 }
 
 void setGoal(){
+  state = "set goal";
   sparki.clearLCD();
-  if(light_state==100){
-    goal_node=2;
-    program_state=FOLLOW_LIGHT;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 2
-    sparki.println("state = " + state);
-  } else if(light_state==110){
-    goal_node=11;
-    program_state=FOLLOW_LIGHT;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 2
-    sparki.println("state = " + state);
-  } else if(light_state==10){
-    goal_node=12;
-    program_state=FOLLOW_LIGHT;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 2
-    sparki.println("state = " + state);
-  } else if(light_state==11){
-    goal_node=4;
-    program_state=FOLLOW_LIGHT;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 2
-    sparki.println("state = " + state);
-  } else if(light_state==1){
-    sparki.moveRight(100);
-    program_state=LOCAL_SEARCH;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 3
-    sparki.println("state = " + state);
-  } else {
-    program_state=FIND_LIGHT;
-    sparki.print("Goal node:");
-    sparki.println(goal_node);
-    sparki.println(String("state = ") + program_state); //should be 1
-    sparki.println("state = " + state);
-  }
-  sparki.updateLCD();
+  displaySensorsAndStates();
+  sparki.moveForward(10); // REMOVE (THIS IS FOR TESTING)
+
+  // INSERT GOAL CODE
+  
+  program_state =CALL_DIJKSTRA;
 }
 
-
-int cost(int i, int j){ //i=from node, j=to node
-  int x1= i/4;
-  int y1= i%4;
-  int x2= j/4;
-  int y2= j%4;
-
-  if(i==j){
-    return 0;
-  }
-  if(grid[x1][y1] || grid[x2][y2]){ //if obstacle
-    return(infinity);
-  }
-  int cost = fabs(x1-x2)+fabs(y1-y2);
-  if(cost>1){
-    return(infinity);
-  } else {
-    return(cost);
-  }
-}
-
-void dij(int n, int v, int dist[]){
-  int i,u,count,w,flag[16],minimum;
-
-  for(i=0;i<=n;i++){
-    flag[i]=0;
-    dist[i]=infinity;
-  }
-  dist[goal_node]=0;
-  count=1;
-  while(count<=n){
-    minimum=infinity;
-    for(w=0;w<=n;w++){
-      if(dist[w]<minimum && !flag[w]){
-        minimum=dist[w];
-        u=w; 
-      }
-    }
-    flag[u]=1;
-    count++;
-    for(w=0;w<=n;w++){
-      if((dist[u]+cost(u,w)<dist[w]) && !flag[w]){
-        dist[w]=dist[u]+cost(u,w);
-        go_to[w]=u;
-      }
-    }
-  }
-}
 
 void call_dijkstras(){
-  dij(15, goal_node, distanceToNode);
-  //displaySensorsAndStates();
-  go_to[goal_node]=17; //this makes sure we don't just drive off into the sunset and so the user isn't confused
+  state = "call dijkstras";
+  displaySensorsAndStates();
 
-  sparki.clearLCD();
-  for(int i=0;i<16;i++){
-    sparki.print(" ");
-         if(distanceToNode[i]!=infinity) 
-          sparki.print(go_to[i]);
-         else
-          sparki.print("#");
-        sparki.print(" ");
-        if((i+1)%4==0) sparki.println();
-    }
-  sparki.println();
-  sparki.updateLCD();
-  program_state=LOCAL_SEARCH;
-
-  delay(500);
-}
-void programStates()
-{
-/*
-// Define states for what action the robot is taking (program states)
-#define FIND_LIGHT 0 // attempting to find victims
-#define FOUND_LIGHT 1 // found light, implements best path algorithm
-#define FOLLOW_LIGHT 2 // following best path to light source
-#define LOCAL_SEARCH 3 // gets to approx. locationa and searches for victim with ping
-#define FOUND_VICTIM 4 // found objects, appraoching to grab
-#define RETURN_HOME 5 // grabbed victim, returning home
-#define END_GAME 
-*/
-
-  switch(program_state)
-  {
-    case FIND_LIGHT: findLight(); break;
-    case FOUND_LIGHT: setGoal(); break;
-    case FOLLOW_LIGHT: call_dijkstras(); break;
-    case LOCAL_SEARCH: localSearchandGrab(); break;
-    // case RETURN_HOME: break;
-    // case END_GAME: break;
-    default: break;
+  // INSERT DIJKSTRA CODE
+  
+  while (program_state != RETURN_HOME) { // LOCAL SEARCH SHOULD BE RUNNING WHILE SPARKI IS MOVING
+      localSearchandGrab();
   }
 }
-
 
 void localSearchandGrab() {
+  state = "search for object";
+  displaySensorsAndStates();
   ping = sparki.ping();
-  if (ping == -1) // too far or too close
-  {
-    ping = 100;
+  if (ping == -1) {
+    ping = 100; // too large or too small
   }
-  readSensors(); // continually grab new sensor data for left/center/right sensors
-  displaySensorsAndStates(); // display sensor on display
-
-  if (ping > 8){
-    // rotate in a circle until victim is found
-    sparki.moveLeft(360);
-  }
-  else
-  {
-     while (ping > 3) {
-           sparki.moveForward();
-     }
-     // grab object by closing grippers
-     sparki.moveStop();
-     sparki.gripperClose();
-     delay(2000); // time to grip (2 seconds)
-     sparki.gripperStop();
-     program_state = RETURN_HOME;
+  if (ping < 5){
+    state = "grabbing object";
+    displaySensorsAndStates();
+    ping = sparki.ping();
+    sparki.moveStop();
+    sparki.gripperClose();
+    delay(3000);
+    sparki.gripperStop();
+    program_state = RETURN_HOME;
   }
 }
 
-void releaseObject()
+void returnHome()
 {
+  displaySensorsAndStates();
+  sparki.moveLeft(100); // TO REMOVE (TESTING CODE)
+
+  // INSERT 'RETURN TO HOME' CODE
+  
   sparki.moveStop();
   state = "releasing object";
   sparki.gripperOpen();
-  delay(2000);
+  delay(3000);
   sparki.gripperStop();
+  state = "done";
+  program_state = END_GAME;
+  displaySensorsAndStates();
 }
+
 
 void loop() {
   // put your main code here, to run repeatedly: follows the line and only changes behavior is it sees an object
   if (program_state != END_GAME) // while the program isn't done
   {
+    ping = sparki.ping();
     programStates();
     //displaySensorsAndStates();
     delay(10); // loops .01 a second (pings rate)
