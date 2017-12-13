@@ -175,6 +175,15 @@ void returnHome()
   sparki.moveLeft(100); // TO REMOVE (TESTING CODE)
 
   // INSERT 'RETURN TO HOME' CODE
+
+
+  // reset all distances to infinity to run dij()
+  for(int i=0;i<numNodes;i++){
+    distanceToNode[i]=infinity;
+  }
+  // set home as goal and find shortest path home
+  dij(15, start_node, distanceToNode[]);
+  // INSERT 'DRIVE TO GOAL' CODE
   
   sparki.moveStop();
   state = "releasing object";
