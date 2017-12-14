@@ -31,9 +31,27 @@ Douglas Allen
 #define RETURN_HOME 3 // grabbed victim, returning home
 #define END_GAME 4 // all victims have been captured, or lost, end of all movement
 #define LOCAL_SEARCH 5 // all victims have been captured, or lost, end of all movement
+#define MOVE_NODE 6 // traverse accrose the grid
+
+//Odometry variables
+float maxspeed=0.0285;    // [m/s] speed of the robot that you measured
+float alength=0.0851;     // [m] axle length  
+float phildotr=0, phirdotr=0; // wheel speeds that you sent to the motors
+float Xi=0, Yi=0, Thetai=0; // where the robot is in the world
+float Xrdot, Thetardot;    // how fast the robot moves in its coordinate system
+
+float Xg = 0;     // Where the robot should go
+float Yg = 0;
+float Thetag=0;
+
+float alpha, rho, eta; // error between positions in terms of angle to the goal, distance to the goal, and final angle
+float a=0.1, b=1, c=0.1; // controller gains
 
 const int threshold = 800; // light sensor threshold
 bool lightLeft, lightCenter, lightRight = false; // light senesors see light above threshold
+
+int current_node = 14; //testing nodes for Odometry
+int target_node = 15;
 
 int light_state = NO_LIGHT;
 int found_light = 0;
@@ -109,6 +127,7 @@ void programStates()
     case SET_GOAL: setGoal(); break;
     case LOCAL_SEARCH: localSearchandGrab(); break;
     case CALL_DIJKSTRA: call_dijkstras(); break;
+    case MOVE_NODE: find_direction(); break;
     case RETURN_HOME: atHome(); break;
     case END_GAME: break;
     default: break;
@@ -176,6 +195,111 @@ void setGoal(){
   // INSERT GOAL CODE
   
   program_state =CALL_DIJKSTRA;
+}
+
+
+void find_direction(){
+  // Our target node is to our right
+  if (current_node+1 == target_node){
+    Xg = 0.1778;
+    Yg = 0;
+    Thetag = 0;
+    state = "Moving Right";
+  }
+  // Our target node is to our left
+  else if (current_node-1 == target_node){
+    Xg = 0.1778;
+    Yg = 0;
+    Thetag = 180;
+    state = "Moving Left";
+  }
+  // Our target node is right above us
+  else if ((current_node-target_node) > 0){
+    Xg = 0.1;
+    Yg = 0.1;
+    Thetag = -0.001;
+    state = "Moving UP";
+  }
+  // Our target node is right below us
+  else if ((current_node - target_node) < 0) {
+    Xg = 0.1;
+    Yg = 0.13;
+    Thetag = 0.001;
+    state = "Moving Down";
+  }
+  // Either Error or goal is found
+  else{
+    Xg = 0;
+    Yg = 0;
+    Thetag = 0;
+    state = "Not Moving";
+  }
+  odometry();
+}
+
+void odometry(){
+  displaySensorsAndStates();
+    // CALCULATE ERROR 
+  rho   = sqrt((Xi-Xg)*(Xi-Xg)+(Yi-Yg)*(Yi-Yg));
+  //alpha = Thetai-atan2(Yi-Yg,Xi-Xg)-PI/2.0;
+  alpha = atan2(Yg-Yi,Xg-Xi)-Thetai;  
+  eta   = Thetai-Thetag;
+
+  // CALCULATE SPEED IN ROBOT COORDINATE SYSTEM
+  Xrdot = a*rho;
+  //Xrdot=0;
+  Thetardot = b*alpha+c*eta;
+  
+  // CALCULATE WHEEL SPEED
+  phildotr = (2*Xrdot - Thetardot*alength)/(2.0);
+  phirdotr = (2*Xrdot + Thetardot*alength)/(2.0);
+  
+  // SET WHEELSPEED
+
+  float leftspeed = abs(phildotr);
+  float rightspeed = abs(phirdotr);
+
+  if(leftspeed > maxspeed)
+  {
+    leftspeed = maxspeed;
+  }
+  if(rightspeed > maxspeed)
+  {
+    rightspeed = maxspeed;
+  }
+  leftspeed = (leftspeed/maxspeed)*100;//100
+  rightspeed = (rightspeed/maxspeed)*100;//100
+
+  if(rho > 0.01)  // if farther away than 1cm
+  {
+    if(phildotr > 0)
+    {
+      sparki.motorRotate(MOTOR_LEFT, DIR_CCW,leftspeed);
+    }
+    else
+    {
+      sparki.motorRotate(MOTOR_LEFT, DIR_CW,leftspeed);
+    }
+    if(phirdotr > 0)
+    {
+      sparki.motorRotate(MOTOR_RIGHT, DIR_CW,rightspeed);
+    }
+    else
+    {
+      sparki.motorRotate(MOTOR_RIGHT, DIR_CCW,rightspeed);
+    }
+  }
+  else
+  {
+    sparki.moveStop();
+  }
+  // perform odometry
+  Xrdot=phildotr/2.0+phirdotr/2.0;
+  Thetardot=phirdotr/alength-phildotr/alength;
+  
+  Xi=Xi+cos(Thetai)*Xrdot*0.1;
+  Yi=Yi+sin(Thetai)*Xrdot*0.1;
+  Thetai=Thetai+Thetardot*0.1;
 }
 
 
