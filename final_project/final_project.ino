@@ -31,27 +31,9 @@ Douglas Allen
 #define RETURN_HOME 3 // grabbed victim, returning home
 #define END_GAME 4 // all victims have been captured, or lost, end of all movement
 #define LOCAL_SEARCH 5 // all victims have been captured, or lost, end of all movement
-#define MOVE_NODE 6 // traverse accrose the grid
 
-//Odometry variables
-float maxspeed=0.0285;    // [m/s] speed of the robot that you measured
-float alength=0.0851;     // [m] axle length  
-float phildotr=0, phirdotr=0; // wheel speeds that you sent to the motors
-float Xi=0, Yi=0, Thetai=0; // where the robot is in the world
-float Xrdot, Thetardot;    // how fast the robot moves in its coordinate system
-
-float Xg = 0;     // Where the robot should go
-float Yg = 0;
-float Thetag=0;
-
-float alpha, rho, eta; // error between positions in terms of angle to the goal, distance to the goal, and final angle
-float a=0.1, b=1, c=0.1; // controller gains
-
-const int threshold = 800; // light sensor threshold
+const int threshold = 200; // light sensor threshold
 bool lightLeft, lightCenter, lightRight = false; // light senesors see light above threshold
-
-int current_node = 14; //testing nodes for Odometry
-int target_node = 15;
 
 int light_state = NO_LIGHT;
 int found_light = 0;
@@ -74,19 +56,18 @@ int displayRows = 64;
 int displayCols = 128;
 
 // Dimensions of line-following map
-float mapWidth = 0.45; // meters
-float mapHeight = 0.45; // meters
+float mapWidth = 0.72; // meters
+float mapHeight = 0.54; // meters
 
 // Map of obstacle course
-const int numRows = 5;
-const int numCols = 5;
+const int numRows = 4;
+const int numCols = 4;
 // 0 are obstalces and 1 is clear path
 bool envMap[numRows][numCols] = {
-  {1, 1, 1, 1, 0}, // starts on first node
-  {1, 0, 0, 1, 1},
-  {1, 0, 0, 1, 0},
-  {1, 1, 1, 1, 1},
-  {1, 0, 0, 1, 1},
+  {1, 1, 1, 1},
+  {1, 1, 0, 1},
+  {1, 0, 0, 1},
+  {1, 1, 1, 1},
 };
 float theta = 0; // Initially facing right ("East" or 0 radians)
 
@@ -95,7 +76,7 @@ int distanceToNode[numRows * numCols];
 
 byte startPos[2] = {0, 0};
 byte currentPos[2] = {startPos[0], startPos[1]};
-byte goalPos[2] = {0, 3};
+byte goalPos[2];// = {1, 3};
 ////////////////////////////////////////////////////////////////////////////
 
 
@@ -127,7 +108,6 @@ void programStates()
     case SET_GOAL: setGoal(); break;
     case LOCAL_SEARCH: localSearchandGrab(); break;
     case CALL_DIJKSTRA: call_dijkstras(); break;
-    case MOVE_NODE: find_direction(); break;
     case RETURN_HOME: atHome(); break;
     case END_GAME: break;
     default: break;
@@ -142,7 +122,7 @@ void displaySensorsAndStates()
    * sparki.print(ping);
    * sparki.println(" cm");
    */
-  if(program_state==FIND_LIGHT){
+  if(program_state){
     sparki.print("Light state: ");
     sparki.println(light_state);
   } else if(program_state==SET_GOAL ){
@@ -170,6 +150,8 @@ void readSensors()
   if (light_state) 
   {
     found_light = light_state;
+    program_state = SET_GOAL;
+
   }
 }
 
@@ -185,7 +167,6 @@ void findLight() {
     sparki.moveRight(100);
     sparki.moveLeft(100);
   }
-  program_state = SET_GOAL;
 }
 
 void setGoal(){
@@ -193,113 +174,30 @@ void setGoal(){
   sparki.clearLCD();
   displaySensorsAndStates();
   // INSERT GOAL CODE
-  
+  /*
+   * #define ALL_LIGHT 111
+#define NO_LIGHT 0 ///000
+#define  ONLY_RIGHT 1 //001
+#define  RIGHT_CENTER 11 //011
+#define  ONLY_LEFT 100
+#define  LEFT_CENTER 110
+#define  ONLY_CENTER 10 //010
+   */
+   if (light_state==ONLY_RIGHT || light_state==RIGHT_CENTER || light_state==ALL_LIGHT) {
+      state="right";
+      displaySensorsAndStates();
+      delay(2000);
+      goalPos[0] = 3;
+      goalPos[1] = 2;
+   }
+   if (light_state==ONLY_LEFT || light_state==LEFT_CENTER || light_state==ONLY_CENTER) {
+      state="left";
+       displaySensorsAndStates();
+      delay(2000);
+      goalPos[0] = 3;
+      goalPos[1] = 2;
+   }
   program_state =CALL_DIJKSTRA;
-}
-
-
-void find_direction(){
-  // Our target node is to our right
-  if (current_node+1 == target_node){
-    Xg = 0.1778;
-    Yg = 0;
-    Thetag = 0;
-    state = "Moving Right";
-  }
-  // Our target node is to our left
-  else if (current_node-1 == target_node){
-    Xg = 0.1778;
-    Yg = 0;
-    Thetag = 180;
-    state = "Moving Left";
-  }
-  // Our target node is right above us
-  else if ((current_node-target_node) > 0){
-    Xg = 0.1;
-    Yg = 0.1;
-    Thetag = -0.001;
-    state = "Moving UP";
-  }
-  // Our target node is right below us
-  else if ((current_node - target_node) < 0) {
-    Xg = 0.1;
-    Yg = 0.13;
-    Thetag = 0.001;
-    state = "Moving Down";
-  }
-  // Either Error or goal is found
-  else{
-    Xg = 0;
-    Yg = 0;
-    Thetag = 0;
-    state = "Not Moving";
-  }
-  odometry();
-}
-
-void odometry(){
-  displaySensorsAndStates();
-    // CALCULATE ERROR 
-  rho   = sqrt((Xi-Xg)*(Xi-Xg)+(Yi-Yg)*(Yi-Yg));
-  //alpha = Thetai-atan2(Yi-Yg,Xi-Xg)-PI/2.0;
-  alpha = atan2(Yg-Yi,Xg-Xi)-Thetai;  
-  eta   = Thetai-Thetag;
-
-  // CALCULATE SPEED IN ROBOT COORDINATE SYSTEM
-  Xrdot = a*rho;
-  //Xrdot=0;
-  Thetardot = b*alpha+c*eta;
-  
-  // CALCULATE WHEEL SPEED
-  phildotr = (2*Xrdot - Thetardot*alength)/(2.0);
-  phirdotr = (2*Xrdot + Thetardot*alength)/(2.0);
-  
-  // SET WHEELSPEED
-
-  float leftspeed = abs(phildotr);
-  float rightspeed = abs(phirdotr);
-
-  if(leftspeed > maxspeed)
-  {
-    leftspeed = maxspeed;
-  }
-  if(rightspeed > maxspeed)
-  {
-    rightspeed = maxspeed;
-  }
-  leftspeed = (leftspeed/maxspeed)*100;//100
-  rightspeed = (rightspeed/maxspeed)*100;//100
-
-  if(rho > 0.01)  // if farther away than 1cm
-  {
-    if(phildotr > 0)
-    {
-      sparki.motorRotate(MOTOR_LEFT, DIR_CCW,leftspeed);
-    }
-    else
-    {
-      sparki.motorRotate(MOTOR_LEFT, DIR_CW,leftspeed);
-    }
-    if(phirdotr > 0)
-    {
-      sparki.motorRotate(MOTOR_RIGHT, DIR_CW,rightspeed);
-    }
-    else
-    {
-      sparki.motorRotate(MOTOR_RIGHT, DIR_CCW,rightspeed);
-    }
-  }
-  else
-  {
-    sparki.moveStop();
-  }
-  // perform odometry
-  Xrdot=phildotr/2.0+phirdotr/2.0;
-  Thetardot=phirdotr/alength-phildotr/alength;
-  
-  Xi=Xi+cos(Thetai)*Xrdot*0.1;
-  Yi=Yi+sin(Thetai)*Xrdot*0.1;
-  Thetai=Thetai+Thetardot*0.1;
 }
 
 
@@ -322,6 +220,8 @@ void localSearchandGrab() {
   state = "search for object";
   finishedMoving = false;
   pathCalcuated=false;
+  goalPos[0] = startPos[0];
+  goalPos[1] = startPos[1];
   displaySensorsAndStates();
   ping = sparki.ping();
   if (ping == -1) {
@@ -341,32 +241,31 @@ void localSearchandGrab() {
 
 void atHome()
 {
+  sparki.RGB(RGB_RED); // turn the light red
+
   state = "return home";
   displaySensorsAndStates();
  // return to start
-  displaySensorsAndStates();
-  goalPos[0] = startPos[0];
-  goalPos[1] = startPos[1];
   if (! pathCalcuated) {
       dij(numRows * numCols, posToNode(goalPos[0], goalPos[1]), distanceToNode); // return to start
   }
   dijMove();
   displaySensorsAndStates();
 
-  //displayMap(); 
+  displayMap(); 
 
   // INSERT 'RETURN TO HOME' CODE
   //sparki.moveStop();
   //delay(3000);
-  //state = "releasing object1";
-  //displaySensorsAndStates();
+  state = "releasing object1";
+  displaySensorsAndStates();
   if (finishedMoving)
   {
 
     sparki.gripperOpen();
     delay(3000);
     //sparki.gripperStop();
-    state = "ALL DONE2";
+    state = "ALL DONE";
     sparki.gripperStop();
     displaySensorsAndStates();
     program_state = END_GAME;
@@ -429,20 +328,19 @@ void dij(int n,int v,int distance[])
       if((distance[u]+cost(u,w)<distance[w]) && !flag[w])
         distance[w]=distance[u]+cost(u,w);
   }
+  pathCalcuated = true;
 }
 
 void dijMove(){
   //displayMap(); 
-  state = "dij moving";
-  
+  //state = "dij moving";
     if (currentPos[0] != goalPos[0] || currentPos[1] != goalPos[1]){
     int currentNode = posToNode(currentPos[0], currentPos[1]);
     int moveToNode;
     
     // above, right, below, left
     // {distance, node}
-    int possibleNodes[5][2] = {
-      {infinity, 99},
+    int possibleNodes[4][2] = {
       {infinity, 99},
       {infinity, 99},
       {infinity, 99},
@@ -469,7 +367,6 @@ void dijMove(){
       possibleNodes[3][0] = distanceToNode[currentNode - 1];
       possibleNodes[3][1] = currentNode - 1;
     }
-
     int minStep1 = min(possibleNodes[0][0], possibleNodes[1][0]);
     int minStep2 = min(possibleNodes[2][0], possibleNodes[3][0]);
     int minStep = min(minStep1, minStep2);
@@ -477,11 +374,14 @@ void dijMove(){
     for (int directionNode = 0; directionNode < 4; directionNode++) {
       if (possibleNodes[directionNode][0] == minStep) {
         moveToNode = possibleNodes[directionNode][1];
+        state = moveToNode;
+        displaySensorsAndStates();
+        //delay(1000);
         break;
       }
     }
     
-    if (currentNode < numCols && moveToNode == currentNode - numRows) {
+    if (currentNode >= numCols && moveToNode == currentNode - numRows) {
       // We should move up
       if (theta == 0) {
         sparki.moveLeft(90);
@@ -493,7 +393,7 @@ void dijMove(){
       theta = 90;
       sparki.moveForward(mapHeight / numCols * 100.0);
       currentPos[0] -= 1;
-    } else if (currentNode % 5 != numCols - 1 && moveToNode == currentNode + 1) {
+    } else if (currentNode % 4 != numCols - 1 && moveToNode == currentNode + 1) {
       // We should move right
       if (theta == 90) {
         sparki.moveRight(90);
