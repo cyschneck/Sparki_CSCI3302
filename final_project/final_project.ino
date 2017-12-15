@@ -187,8 +187,8 @@ void setGoal(){
       state="right";
       displaySensorsAndStates();
       delay(2000);
-      goalPos[0] = 3;
-      goalPos[1] = 2;
+      goalPos[0] = 2;
+      goalPos[1] = 3;
    }
    if (light_state==ONLY_LEFT || light_state==LEFT_CENTER || light_state==ONLY_CENTER) {
       state="left";
